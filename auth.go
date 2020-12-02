@@ -29,7 +29,7 @@ func parseCookie(c *gin.Context) (auth CookieInfo, err error) {
 query:
 	err = c.ShouldBindQuery(&cookie)
 	if nil != err {
-		c.String(http.StatusUnauthorized, ResponseMsg("NOT_LOGIN"))
+		c.String(http.StatusUnauthorized, "NOT LOGIN")
 		c.Abort()
 
 		return
@@ -37,7 +37,7 @@ query:
 
 token:
 	if cookie.Token != cookie.Jyauth {
-		c.String(http.StatusUnauthorized, ResponseMsg("AUTH_ERROR"))
+		c.String(http.StatusUnauthorized, "AUTH_ERROR")
 		c.Abort()
 
 		return
@@ -61,14 +61,14 @@ func NeedLogin(callback func(c *gin.Context, cookie CookieInfo) bool, timeout in
 
 		cookie, err := parseCookie(c)
 		if nil != err {
-			c.String(http.StatusUnauthorized, ResponseMsg("NOT_LOGIN")+err.Error())
+			c.String(http.StatusUnauthorized, "NOT_LOGIN"+err.Error())
 			c.Abort()
 
 			return
 		}
 
 		if cookie.Token != cookie.Jyauth {
-			c.String(http.StatusUnauthorized, ResponseMsg("AUTH_ERROR"))
+			c.String(http.StatusUnauthorized, "AUTH_ERROR")
 			c.Abort()
 
 			return
@@ -76,7 +76,7 @@ func NeedLogin(callback func(c *gin.Context, cookie CookieInfo) bool, timeout in
 
 		// 在对应的服务中验证登录是否有效 //
 		if !callback(c, cookie) {
-			c.String(http.StatusUnauthorized, ResponseMsg("NOT_LOGIN"))
+			c.String(http.StatusUnauthorized, "NOT_LOGIN")
 			c.Abort()
 
 			return
