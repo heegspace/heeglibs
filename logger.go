@@ -1,13 +1,14 @@
-package youyoulibs
+package heeglibs
 
 import (
 	"encoding/json"
 	"fmt"
+	"runtime"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
-	"runtime"
-	"time"
 )
 
 type LogInfo struct {

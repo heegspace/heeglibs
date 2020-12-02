@@ -1,7 +1,8 @@
-package youyoulibs
+package heeglibs
 
 import (
 	"context"
+
 	"github.com/tsuna/gohbase"
 	"github.com/tsuna/gohbase/hrpc"
 )

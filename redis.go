@@ -1,10 +1,11 @@
-package youyoulibs
+package heeglibs
 
 import (
 	"errors"
+	"time"
+
 	"github.com/go-redis/redis"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 type Redis struct {

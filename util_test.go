@@ -1,4 +1,4 @@
-package youyoulibs
+package heeglibs
 
 import (
 	"fmt"
@@ -34,20 +34,20 @@ func TestGetRandomNumberString(t *testing.T) {
 }
 
 func TestSendSmsCode(t *testing.T) {
-	code,err := SendSmsCode(
+	code, err := SendSmsCode(
 		"http://gw.api.taobao.com/router/rest",
 		"23285989",
 		"SMS_186617096",
-		"a8ab447e0ea153c1ba6b7915403e9280", 
+		"a8ab447e0ea153c1ba6b7915403e9280",
 		"15920955603",
 	)
 
 	if nil != err {
 		fmt.Println("Request msm code err: ", err)
 
-		return 
+		return
 	}
 
 	fmt.Println("Request sms code success, code: ", code)
-	return 
+	return
 }
