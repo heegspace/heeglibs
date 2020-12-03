@@ -1,0 +1,151 @@
+package heeglibs
+
+// clickhouse客户端操作
+
+import (
+	"database/sql"
+	"errors"
+	"fmt"
+
+	"github.com/ClickHouse/clickhouse-go"
+	_ "github.com/ClickHouse/clickhouse-go"
+	_ "github.com/go-sql-driver/mysql"
+)
+
+type ClickHouse struct {
+	Host string
+
+	Db *sql.DB
+}
+
+func NewClickHouse(host string) *ClickHouse {
+	obj := &ClickHouse{
+		Host: host,
+	}
+
+	return obj
+}
+
+func (this *ClickHouse) GetDB() *sql.DB {
+	if this.Db == nil {
+		var err error
+
+		this.Db, err = this.getdb()
+		if err != nil {
+			panic("get Db err:" + err.Error())
+		}
+
+		return this.Db
+	}
+
+	return this.Db
+}
+
+// 查询接口
+// @param statement 查询语句
+// @param callback 查询回调函数   参数： 查询到的值 和  查询状态
+// @param args 查询行的临时存储变量【主要用于查询的列,目前仅仅支持string和float64,也就是要查询的所有列的类型
+// @return count,err
+func (this *ClickHouse) ExecRows(statement string, callback func([][]interface{}, error), args ...interface{}) (count int, err error) {
+	db := this.GetDB()
+	rows, err := db.Query(statement)
+	if nil != err {
+		callback(nil, err)
+
+		return
+	}
+	defer rows.Close()
+
+	count = 0
+	value := make([][]interface{}, 0)
+	for rows.Next() {
+		err = rows.Scan(args...)
+		if nil != err {
+			continue
+		}
+
+		temp := make([]interface{}, 0)
+		for _, v := range args {
+			switch v.(type) {
+			case *string:
+				tem := *v.(*string)
+				temp = append(temp, &tem)
+			case *float64:
+				tem := *v.(*float64)
+				temp = append(temp, &tem)
+			case *int64:
+				tem := *v.(*int64)
+				temp = append(temp, &tem)
+			}
+		}
+
+		count += 1
+		value = append(value, temp)
+	}
+
+	callback(value, err)
+	return
+}
+
+// 执行数据操作动作，主要是插入数据和更新数据
+// @param statement 	动作的语句
+// @param callback 执行的回调函数
+// @param args 动作的参数
+// @return err
+func (this *ClickHouse) ExecAction(statement string, callback func(error), args ...interface{}) (err error) {
+	db := this.GetDB()
+	err = db.Exec(statement, args...).Error
+	if nil != err {
+		callback(err)
+
+		return
+	}
+
+	callback(err)
+
+	return
+}
+
+// 设置数据库为调试模式
+func (this *ClickHouse) LogMode(mode bool) {
+	this.Db.LogMode(true)
+}
+
+// 设置数据库空闲连接数大小
+func (this *ClickHouse) SetMaxIdleConns(count int) {
+	this.Db.DB().SetMaxIdleConns(count)
+}
+
+// 最大打开连接数
+func (this *ClickHouse) SetMaxOpenConns(count int) {
+	this.Db.DB().SetMaxOpenConns(count)
+}
+
+func (this *ClickHouse) getdb() (*sql.DB, error) {
+	if 0 == len(this.Host) {
+		return nil, errors.New("mysql connect info error.")
+	}
+
+	connect, err := sql.Open("clickhouse", this.Host)
+	if err != nil {
+		return nil, err
+	}
+
+	err = connect.Ping()
+	if nil != err {
+		if exception, ok := err.(*clickhouse.Exception); ok {
+			fmt.Printf("[%d] %s \n%s\n", exception.Code, exception.Message, exception.StackTrace)
+		} else {
+			fmt.Println(err)
+		}
+
+		return nil, err
+	}
+
+	this.Db = connect
+	this.Db.LogMode(true)
+	this.Db.DB().SetMaxIdleConns(20)  //连接池的空闲数大小
+	this.Db.DB().SetMaxOpenConns(100) //最大打开连接数
+
+	return this.Db, nil
+}

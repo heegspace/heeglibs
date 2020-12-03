@@ -162,8 +162,8 @@ func (this *SqlDB) getdb() (*gorm.DB, error) {
 
 	this.Db = db
 	this.Db.LogMode(true)
-	this.Db.DB().SetMaxIdleConns(5)  //连接池的空闲数大小
-	this.Db.DB().SetMaxOpenConns(15) //最大打开连接数
+	this.Db.DB().SetMaxIdleConns(20)  //连接池的空闲数大小
+	this.Db.DB().SetMaxOpenConns(100) //最大打开连接数
 	this.Db.SingularTable(true)
 
 	return this.Db, nil
