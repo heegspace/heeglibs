@@ -3,6 +3,7 @@ package heeglibs
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -19,24 +20,25 @@ type ExampleTest struct {
 func Test_ClickHouse(t *testing.T) {
 	clchse := NewClickHouse("tcp://127.0.0.1:9000?username=default&password=576188&debug=true")
 
-	// clchse.ExecAction(`
-	// 	CREATE TABLE example_test (
-	// 		country_code FixedString(2),
-	// 		os_id        UInt8,
-	// 		browser_id   UInt8,
-	// 		categories   Array(Int16),
-	// 		action_day   Date,
-	// 		action_time  DateTime
-	// 	) engine=Memory
-	// `, func(err error) {
-	// 	fmt.Println("Create: ", err)
-	// })
+	clchse.ExecAction(`
+		CREATE TABLE example_test (
+			country_code FixedString(2),
+			os_id        UInt8,
+			browser_id   UInt8,
+			categories   Array(Int16),
+			action_day   Date,
+			action_time  DateTime
+		) engine=Memory
+	`, func(err error) {
+		fmt.Println("Create: ", err)
+	})
 
-	// clchse.ExecInsert("INSERT INTO example_test(country_code, os_id, browser_id, categories, action_day, action_time) VALUES(?, ?, ?, ?, ?, ?)",
-	// 	func(err error) {
-	// 		fmt.Println("Insert: ", err)
-	// 	}, "CN", 99, 99, []int16{1, 2, 3}, time.Now(), time.Now(),
-	// )
+	// 插入数据
+	clchse.ExecInsert("INSERT INTO example_test(country_code, os_id, browser_id, categories, action_day, action_time) VALUES(?, ?, ?, ?, ?, ?)",
+		func(err error) {
+			fmt.Println("Insert: ", err)
+		}, "CN", 99, 99, []int16{1, 2, 3}, time.Now(), time.Now(),
+	)
 
 	// 查询数据
 	var test ExampleTest
@@ -63,15 +65,10 @@ func Test_ClickHouse(t *testing.T) {
 	fmt.Println("count: ", count)
 	log.Println(test)
 
-	// // 插入数据
-	// clchse.ExecAction("INSERT INTO log(id,level,message) VALUE(?,?,?)", func(err error) {
+	// 更新数据
+	// clchse.ExecAction("UPDATE example_test SET os_id=? WHERE country_code=99", func(err error) {
 	// 	fmt.Println(err)
-	// }, 6, 5, "use data")
-
-	// // 更新数据
-	// clchse.ExecAction("UPDATE log SET level=? WHERE id=5", func(err error) {
-	// 	fmt.Println(err)
-	// }, 90)
+	// }, 200)
 
 	return
 }

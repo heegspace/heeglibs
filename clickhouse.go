@@ -101,6 +101,13 @@ func (this *ClickHouse) ExecRows(statement string, callback func([][]interface{}
 	return
 }
 
+// 插入1条数据
+//
+// @param statement 插入语句  注： 其中必须是带?的语句
+// @param callback  插入回调
+// @param args 		插入的参数
+//
+//
 func (this *ClickHouse) ExecInsert(statement string, callback func(error), args ...interface{}) (err error) {
 	tx, err := this.GetDB().Begin()
 	if nil != err {
