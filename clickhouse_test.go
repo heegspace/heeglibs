@@ -1,19 +1,46 @@
 package heeglibs
-package heeglibs
 
 import (
 	"fmt"
 	"testing"
+
+	log "github.com/sirupsen/logrus"
 )
 
+type ExampleTest struct {
+	CountryCode string
+	OsId        int64
+	BrowserId   int64
+	Categories  []int16
+	ActionDay   string
+	ActionTime  string
+}
+
 func Test_ClickHouse(t *testing.T) {
-	clchse := NewClickHouse("tcp://127.0.0.1:9000?debug=true")
+	clchse := NewClickHouse("tcp://127.0.0.1:9000?username=default&password=576188&debug=true")
+
+	// clchse.ExecAction(`
+	// 	CREATE TABLE example_test (
+	// 		country_code FixedString(2),
+	// 		os_id        UInt8,
+	// 		browser_id   UInt8,
+	// 		categories   Array(Int16),
+	// 		action_day   Date,
+	// 		action_time  DateTime
+	// 	) engine=Memory
+	// `, func(err error) {
+	// 	fmt.Println("Create: ", err)
+	// })
+
+	// clchse.ExecInsert("INSERT INTO example_test(country_code, os_id, browser_id, categories, action_day, action_time) VALUES(?, ?, ?, ?, ?, ?)",
+	// 	func(err error) {
+	// 		fmt.Println("Insert: ", err)
+	// 	}, "CN", 99, 99, []int16{1, 2, 3}, time.Now(), time.Now(),
+	// )
 
 	// 查询数据
-	var id float64
-	var level float64
-	var message string
-	count, _ := clchse.ExecRows("select id,level,message from log", func(rows [][]interface{}, err error) {
+	var test ExampleTest
+	count, _ := clchse.ExecRows("SELECT country_code, os_id, browser_id, categories, action_day, action_time FROM example_test", func(rows [][]interface{}, err error) {
 		if nil != err {
 			fmt.Println(err)
 
@@ -21,25 +48,30 @@ func Test_ClickHouse(t *testing.T) {
 		}
 
 		for _, v := range rows {
-			id := v[0].(*float64)
-			level := v[1].(*float64)
-			message := v[2].(*string)
+			var item ExampleTest
+			item.CountryCode = *(v[0].(*string))
+			item.OsId = *(v[1].(*int64))
+			item.BrowserId = *(v[2].(*int64))
+			item.Categories = *(v[3].(*[]int16))
+			item.ActionDay = *(v[4].(*string))
+			item.ActionTime = *(v[4].(*string))
 
-			fmt.Println(*id, *level, *message)
+			log.Println(item)
 		}
-	}, &id, &level, &message)
+	}, &test.CountryCode, &test.OsId, &test.BrowserId, &test.Categories, &test.ActionDay, &test.ActionTime)
 
 	fmt.Println("count: ", count)
+	log.Println(test)
 
-	// 插入数据
-	clchse.ExecAction("INSERT INTO log(id,level,message) VALUE(?,?,?)", func(err error) {
-		fmt.Println(err)
-	}, 6, 5, "use data")
+	// // 插入数据
+	// clchse.ExecAction("INSERT INTO log(id,level,message) VALUE(?,?,?)", func(err error) {
+	// 	fmt.Println(err)
+	// }, 6, 5, "use data")
 
-	// 更新数据
-	clchse.ExecAction("UPDATE log SET level=? WHERE id=5", func(err error) {
-		fmt.Println(err)
-	}, 90)
+	// // 更新数据
+	// clchse.ExecAction("UPDATE log SET level=? WHERE id=5", func(err error) {
+	// 	fmt.Println(err)
+	// }, 90)
 
 	return
 }
