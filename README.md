@@ -287,6 +287,15 @@ func PostBase64(urlAddress string, data interface{}) (r []byte, err error)
 func NewSqlDB(host,port,dbname,username,password string) *SqlDB
 ```
 
+## 传教clickhouse数据库实例
+```
+// 创建clickhouse实例
+//
+// @param host 	clickhouse数据库连接地址
+//
+func NewClickHouse(host string) *ClickHouse
+```
+
 ## 数据库查询接口
 ```
 /**

@@ -18,6 +18,10 @@ type ClickHouse struct {
 	Db *sql.DB
 }
 
+// 创建clickhouse实例
+//
+// @param host 	clickhouse数据库连接地址
+//
 func NewClickHouse(host string) *ClickHouse {
 	obj := &ClickHouse{
 		Host: host,
@@ -26,11 +30,13 @@ func NewClickHouse(host string) *ClickHouse {
 	return obj
 }
 
+// 获取对应的db对象
+//
 func (this *ClickHouse) GetDB() *sql.DB {
 	if this.Db == nil {
 		var err error
 
-		this.Db, err = this.getdb()
+		err = this.getdb()
 		if err != nil {
 			panic("get Db err:" + err.Error())
 		}
@@ -42,10 +48,12 @@ func (this *ClickHouse) GetDB() *sql.DB {
 }
 
 // 查询接口
+//
 // @param statement 查询语句
 // @param callback 查询回调函数   参数： 查询到的值 和  查询状态
 // @param args 查询行的临时存储变量【主要用于查询的列,目前仅仅支持string和float64,也就是要查询的所有列的类型
 // @return count,err
+//
 func (this *ClickHouse) ExecRows(statement string, callback func([][]interface{}, error), args ...interface{}) (count int, err error) {
 	db := this.GetDB()
 	rows, err := db.Query(statement)
@@ -88,10 +96,12 @@ func (this *ClickHouse) ExecRows(statement string, callback func([][]interface{}
 }
 
 // 执行数据操作动作，主要是插入数据和更新数据
+//
 // @param statement 	动作的语句
 // @param callback 执行的回调函数
 // @param args 动作的参数
 // @return err
+//
 func (this *ClickHouse) ExecAction(statement string, callback func(error), args ...interface{}) (err error) {
 	db := this.GetDB()
 	err = db.Exec(statement, args...).Error
@@ -107,28 +117,31 @@ func (this *ClickHouse) ExecAction(statement string, callback func(error), args 
 }
 
 // 设置数据库为调试模式
+//
 func (this *ClickHouse) LogMode(mode bool) {
 	this.Db.LogMode(true)
 }
 
 // 设置数据库空闲连接数大小
+//
 func (this *ClickHouse) SetMaxIdleConns(count int) {
 	this.Db.DB().SetMaxIdleConns(count)
 }
 
 // 最大打开连接数
+//
 func (this *ClickHouse) SetMaxOpenConns(count int) {
 	this.Db.DB().SetMaxOpenConns(count)
 }
 
-func (this *ClickHouse) getdb() (*sql.DB, error) {
+func (this *ClickHouse) getdb() error {
 	if 0 == len(this.Host) {
-		return nil, errors.New("mysql connect info error.")
+		return errors.New("mysql connect info error.")
 	}
 
 	connect, err := sql.Open("clickhouse", this.Host)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	err = connect.Ping()
@@ -139,13 +152,9 @@ func (this *ClickHouse) getdb() (*sql.DB, error) {
 			fmt.Println(err)
 		}
 
-		return nil, err
+		return err
 	}
 
 	this.Db = connect
-	this.Db.LogMode(true)
-	this.Db.DB().SetMaxIdleConns(20)  //连接池的空闲数大小
-	this.Db.DB().SetMaxOpenConns(100) //最大打开连接数
-
-	return this.Db, nil
+	return nil
 }
