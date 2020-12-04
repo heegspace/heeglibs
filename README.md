@@ -699,38 +699,6 @@ func GetRandomNumberString(n int) string
 func SendSmsCode(url,appkey,template,secret, mobile string) (code string, err error)
 ```
 
-## 如果日志需要输出到消息队列，进行初始化
-```
-func Log_init_rabbitmq(host,port,username,passwd,name string)
-```
-
-## 控制日志是否输出到控制台
-```
-/**
-* 控制日志是否输出到控制台
-*/
-func Log_IsConsole(is bool) 
-```
-
-## 控制日志输出到消息队列中
-```
-func Log_IsRabbitmq(is bool)
-```
-
-## 设置日志是否是调试模式
-```
-func Log_LogMode(is bool)
-```
-
-## 输出日志信息
-```
-func Println(msg ...interface{})
-
-func Error(msg ...interface{})
-
-func Warning(msg ...interface{})
-```
-
 ## 创建kafka实例
 ```
 // 创建kafka实例
@@ -881,6 +849,7 @@ example:
 	return
 ```
 
+
 ## 关闭索引
 ```
 // 关闭索引
@@ -899,6 +868,7 @@ example:
 	fmt.Println("TestCloseIndex success! data: ", string(response))
 	return
 ```
+
 
 ## 删除索引
 ```
