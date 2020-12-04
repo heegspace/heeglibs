@@ -126,12 +126,6 @@ func (this *SqlDB) ExecRows(statement string, callback func([][]interface{}, err
 			case *[]int64:
 				tem := *v.(*[]int64)
 				temp = append(temp, &tem)
-			case *uint:
-				tem := *v.(*uint)
-				temp = append(temp, &tem)
-			case *uint8:
-				tem := *v.(*uint8)
-				temp = append(temp, &tem)
 			case *uint16:
 				tem := *v.(*uint16)
 				temp = append(temp, &tem)
@@ -140,12 +134,6 @@ func (this *SqlDB) ExecRows(statement string, callback func([][]interface{}, err
 				temp = append(temp, &tem)
 			case *uint64:
 				tem := *v.(*uint64)
-				temp = append(temp, &tem)
-			case *[]uint:
-				tem := *v.(*[]uint)
-				temp = append(temp, &tem)
-			case *[]uint8:
-				tem := *v.(*[]uint8)
 				temp = append(temp, &tem)
 			case *[]uint16:
 				tem := *v.(*[]uint16)
