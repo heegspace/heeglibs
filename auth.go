@@ -12,6 +12,10 @@ type CookieInfo struct {
 	Token  string `json:"__RequestVerificationToken" form:"__RequestVerificationToken"`
 }
 
+// 解析cookie数据
+// 将头部的cookie或url中的cookie数据解析出来
+// 有限解析head中的数据
+//
 func parseCookie(c *gin.Context) (auth CookieInfo, err error) {
 	var cookie CookieInfo
 	cookie.Jyauth, err = c.Cookie("jyauth")
@@ -49,8 +53,9 @@ token:
 
 // 权限中间件，主要是确认是否登陆成功，设置一个回调函数已在本地服务器中确认
 //
-// @param callback 	主要是在每个服务中将用户ID传递出去
+// @param callback 	回调函数，用于回传cookie数据
 // @param timeout 	token的过期时间
+//
 func NeedLogin(callback func(c *gin.Context, cookie CookieInfo) bool, timeout int64) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		now := time.Now().UnixNano()

@@ -8,6 +8,7 @@ type ElasticSearch struct {
 
 // 创建elasticsearch操作对象
 // @param url 	elasticsearch集群地址
+//
 func NewElasticSearch(url string) *ElasticSearch {
 	obj := &ElasticSearch{
 		Url: url,
@@ -17,9 +18,11 @@ func NewElasticSearch(url string) *ElasticSearch {
 }
 
 // 创建索引
+//
 // @param index 	索引名
 // @param  attr		索引参数[包含索引属性以及映射等信息]
 // @body 	json
+//
 func (this *ElasticSearch) CreateIndex(index string, attr interface{}) (r []byte, err error) {
 	url := this.Url + "/" + index
 
@@ -39,10 +42,12 @@ func (this *ElasticSearch) CreateIndex(index string, attr interface{}) (r []byte
 }
 
 // 更新索引，主要用于修改索引的属性以及添加索引的映射
+//
 // @param index 	索引名
 // @param attr 		索引属性[包含索引属性以及映射等信息]
 // @body json
 // 注： 有些信息是不能被修改的，如:number_of_shards
+//
 func (this *ElasticSearch) UpdateIndex(index string, field string, attr interface{}) (r []byte, err error) {
 	url := this.Url + "/" + index + "/" + field
 
@@ -62,7 +67,9 @@ func (this *ElasticSearch) UpdateIndex(index string, field string, attr interfac
 }
 
 // 删除索引
+//
 // @param index 索引名
+//
 func (this *ElasticSearch) DeleteIndex(index string) (r []byte, err error) {
 	url := this.Url + "/" + index
 
@@ -81,7 +88,9 @@ func (this *ElasticSearch) DeleteIndex(index string) (r []byte, err error) {
 }
 
 // 打开索引
+//
 // @param index
+//
 func (this *ElasticSearch) OpenIndex(index string) (r []byte, err error) {
 	url := this.Url + "/" + index + "/_open"
 
@@ -100,8 +109,12 @@ func (this *ElasticSearch) OpenIndex(index string) (r []byte, err error) {
 }
 
 // 添加索引别名
+//
 // @param 	index 	索引名
 // @param 	alias 	别名
+//
+// @return []byte,err
+//
 func (this *ElasticSearch) AddIndexAlias(index string, alias string) (r []byte, err error) {
 	url := this.Url + "/_aliases"
 
@@ -135,7 +148,9 @@ func (this *ElasticSearch) AddIndexAlias(index string, alias string) (r []byte, 
 }
 
 // 关闭索引
+//
 // @param index
+//
 func (this *ElasticSearch) CloseIndex(index string) (r []byte, err error) {
 	url := this.Url + "/" + index + "/_close"
 

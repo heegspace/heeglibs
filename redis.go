@@ -36,6 +36,7 @@ func NewRedis(host, port, passwd string, db, timeout int) *Redis {
 }
 
 // 获取缓存在线用户的数据库
+//
 func (this *Redis) Open() {
 	if nil == this.rds {
 		this.rds = redis.NewClient(&redis.Options{
@@ -62,6 +63,7 @@ func (this *Redis) Open() {
 // @param timeout 设置超时时间
 //
 // @return err 	错误信息
+//
 func (this *Redis) SetValue(key string, value interface{}, timeout int) (err error) {
 	if nil == this.rds {
 		err = errors.New("Redis didn't open.")
@@ -94,6 +96,7 @@ func (this *Redis) SetValue(key string, value interface{}, timeout int) (err err
 // @param timeout 重新设置更新的时间
 //
 // @return (value,err)
+//
 func (this *Redis) GetValue(key string, isset bool, timeout int) (value interface{}, err error) {
 	if nil == this.rds {
 		err = errors.New("Redis didn't open.")
@@ -126,6 +129,7 @@ func (this *Redis) GetValue(key string, isset bool, timeout int) (value interfac
 // 获取在线缓存的所有keys
 //
 // @return (keys[],err)
+//
 func (this *Redis) GetKeys() (keys []string, err error) {
 	if nil == this.rds {
 		err = errors.New("Redis didn't open.")
@@ -142,6 +146,7 @@ func (this *Redis) GetKeys() (keys []string, err error) {
 // 删除在线的用户缓存
 //
 // @param key 	要删除缓存的key
+//
 func (this *Redis) DelValue(key string) {
 	if nil == this.rds {
 		return
@@ -151,6 +156,7 @@ func (this *Redis) DelValue(key string) {
 }
 
 // 清除用户缓存中的所有数据
+//
 func (this *Redis) FlushAll() {
 	keys, err := this.GetKeys()
 	if nil == err {

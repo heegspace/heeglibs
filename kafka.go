@@ -33,7 +33,9 @@ type KafKa struct {
 }
 
 // 创建kafka实例
+//
 // @param c 配置结构
+//
 func NewKafka(c *KafkaConfig) *KafKa {
 	obj := &KafKa{
 		c:        c,
@@ -45,7 +47,9 @@ func NewKafka(c *KafkaConfig) *KafKa {
 }
 
 // 创建生产者
+//
 // @param c 配置结构
+//
 func newKafkaPub(c *KafkaConfig) kafka.SyncProducer {
 	kc := kafka.NewConfig()
 	kc.Producer.RequiredAcks = kafka.WaitForAll // Wait for all in-sync replicas to ack the message
@@ -59,7 +63,9 @@ func newKafkaPub(c *KafkaConfig) kafka.SyncProducer {
 }
 
 // 创建消费者
+//
 // @param c 配置结构
+//
 func newKafkaSub(c *KafkaConfig) *cluster.Consumer {
 	config := cluster.NewConfig()
 	config.Consumer.Return.Errors = true
@@ -72,10 +78,14 @@ func newKafkaSub(c *KafkaConfig) *cluster.Consumer {
 }
 
 // 生产消息
+//
 // @param c
 // @param key 消息的key
 // @param m_type 消息类型
 // @param msg 	消息
+//
+// @return err
+//
 func (d *KafKa) Product(c context.Context, key string, m_type MsgType, msg []byte) (err error) {
 	pushMsg := &KafkaMsg{
 		Type: m_type,
@@ -99,9 +109,11 @@ func (d *KafKa) Product(c context.Context, key string, m_type MsgType, msg []byt
 }
 
 // 循环消费消息
+//
 // @param errf 	收到错误回调函数
 // @param notif 收到通知回调函数
 // @param msgf  收到消息毁掉函数
+//
 func (j *KafKa) Consume(errf func(error), notif func(interface{}), msgf func(*KafkaMsg)) {
 	for {
 		select {
@@ -127,6 +139,7 @@ func (j *KafKa) Consume(errf func(error), notif func(interface{}), msgf func(*Ka
 }
 
 // 关闭消息队列监听
+//
 func (j *KafKa) Close() error {
 	if j.consumer != nil {
 		return j.consumer.Close()

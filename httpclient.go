@@ -21,8 +21,10 @@ func NewHttpClient() *HttpClient {
 }
 
 // 设置请求的头部
+//
 // @param key
 // @param value
+//
 func (this *HttpClient) Header(key, value string) {
 	if nil == this.Request {
 		return
@@ -33,9 +35,12 @@ func (this *HttpClient) Header(key, value string) {
 }
 
 // 创建一个请求
+//
 // @param url 		请求的地址
 // @param data 		请求的数据
+//
 // @return err
+//
 func (this *HttpClient) NewRequest(url string, data interface{}) (err error) {
 	if nil == data {
 		req, err1 := http.NewRequest("", url, nil)
@@ -97,7 +102,9 @@ func (this *HttpClient) NewRequest(url string, data interface{}) (err error) {
 }
 
 // 发起Http的get请求
+//
 // @return data,err
+//
 func (this *HttpClient) Get() (r []byte, err error) {
 	if nil == this.Request {
 		err = GenError("Http Request didn't create, please call NewRequest to create!")
@@ -118,7 +125,9 @@ func (this *HttpClient) Get() (r []byte, err error) {
 }
 
 // 发起Http的PUT请求
+//
 // @return data,err
+//
 func (this *HttpClient) Put() (r []byte, err error) {
 	if nil == this.Request {
 		err = GenError("Http Request didn't create, please call NewRequest to create!")
@@ -139,7 +148,9 @@ func (this *HttpClient) Put() (r []byte, err error) {
 }
 
 // 发起Http的delete请求
+//
 // @return data,err
+//
 func (this *HttpClient) Delete() (r []byte, err error) {
 	if nil == this.Request {
 		err = GenError("Http Request didn't create, please call NewRequest to create!")
@@ -160,7 +171,9 @@ func (this *HttpClient) Delete() (r []byte, err error) {
 }
 
 // 发起Http的post请求
+//
 // @return data,err
+//
 func (this *HttpClient) Post() (r []byte, err error) {
 	if nil == this.Request {
 		err = GenError("Http Request didn't create, please call NewRequest to create!")
@@ -182,7 +195,9 @@ func (this *HttpClient) Post() (r []byte, err error) {
 
 // @param url 请求的地址
 // @param data 	请求体
+//
 // @return data,err
+//
 func PostBase64(url string, data interface{}) (r []byte, err error) {
 	b, err := json.Marshal(data)
 	if err != nil {

@@ -10,7 +10,9 @@ import (
 var TABLE_NAME map[string]interface{}
 
 // 加载数据表名配置文件
+//
 // @param file
+//
 func LoadTableFromFile(file string) {
 	if nil != TABLE_NAME {
 		return
@@ -36,8 +38,10 @@ func LoadTableFromFile(file string) {
 }
 
 // 通过key获取表的真实名字
+//
 // @param key 	表的key（主要是所需要表名的全大写）
 // @return string
+//
 func TableName(key string) string {
 	if _, ok := TABLE_NAME[key]; !ok {
 		return ""

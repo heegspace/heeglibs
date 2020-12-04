@@ -55,6 +55,9 @@ func (this *ClickHouse) GetDB() *sql.DB {
 //
 // @return count,err
 //
+// 注： 如果查询的是单行数据，可以不用关心查询回调返回的值，查询的值可以读取args引用即可
+// 		也可以从回调参数中读取，只是这里的数组长度是1，其中需要将查询到的值转换到对应的数据结构
+//
 func (this *ClickHouse) ExecRows(statement string, callback func([][]interface{}, error), args ...interface{}) (count int, err error) {
 	db := this.GetDB()
 	rows, err := db.Query(statement)
@@ -175,28 +178,28 @@ func (this *ClickHouse) ExecRows(statement string, callback func([][]interface{}
 // 执行数据更新操作
 // 主要是插入数据和更新数据
 //
-// @param statement 插入语句  注： 其中必须是带?的语句
-// @param callback  插入回调
+// @param statement 更新语句  注： 其中必须是带?的语句
+// @param callback  更新回调，其中参数是更新行数和错误状态
 // @param args 		插入的参数
 //
-func (this *ClickHouse) ExecAction(statement string, callback func(error), args ...interface{}) (err error) {
+func (this *ClickHouse) ExecAction(statement string, callback func(int, error), args ...interface{}) (rows int, err error) {
 	tx, err := this.GetDB().Begin()
 	if nil != err {
-		callback(err)
+		callback(0, err)
 
 		return
 	}
 
 	stmt, err := tx.Prepare(statement)
 	if nil != err {
-		callback(err)
+		callback(0, err)
 
 		return
 	}
 
-	rows, err := stmt.Exec(args...)
+	rows, err = stmt.Exec(args...)
 	if nil != err {
-		callback(err)
+		callback(rows, err)
 
 		return
 	}

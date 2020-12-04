@@ -105,6 +105,7 @@ func mapMD5(secret string, param map[string]interface{}) string {
 }
 
 // 发送短信验证码
+//
 // url 		请求的utl接口
 // appkey 	请求发送短信的appkey
 // template 请求发送短信的template

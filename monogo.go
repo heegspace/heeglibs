@@ -18,6 +18,7 @@ type Mongo struct {
 // @param url 	mongodb的连接地址
 //
 // @return *Mongo
+//
 func NewMongo(url string) *Mongo {
 	mongo := &Mongo{
 		Url:     url,
@@ -28,6 +29,7 @@ func NewMongo(url string) *Mongo {
 }
 
 // 打开mongodb连接
+//
 func (this *Mongo) Open() (err error) {
 	if nil != this.Session {
 		err = errors.New("Mongo session already open.")
@@ -78,6 +80,7 @@ func (this *Mongo) IsOpen() bool {
 // @param data 		插入的数据
 //
 // @return err
+//
 func (this *Mongo) Insert(db, collect string, data interface{}) (err error) {
 	if !this.IsOpen() {
 		err = errors.New("Mongo didn't connected.")
@@ -110,6 +113,7 @@ func (this *Mongo) Insert(db, collect string, data interface{}) (err error) {
 // @param 	update 		更新的数据
 //
 // @return err
+//
 func (this *Mongo) UpdateOrInsert(db, collect string, selector interface{}, update interface{}) (err error) {
 	if !this.IsOpen() {
 		err = errors.New("Mongo didn't connected.")
@@ -146,6 +150,7 @@ func (this *Mongo) UpdateOrInsert(db, collect string, selector interface{}, upda
 //
 // @return query		返回索引对象
 // @return err 		查询状态
+//
 func (this *Mongo) Find(db, collect string, param interface{}) (query MongoQuery, err error) {
 	if !this.IsOpen() {
 		err = errors.New("Mongo didn't connected.")

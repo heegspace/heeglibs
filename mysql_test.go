@@ -5,7 +5,23 @@ import (
 	"testing"
 )
 
-func TestMySql(t *testing.T) {
+func Test_ExecAction(t *testing.T) {
+	msql := NewSqlDB("127.0.0.1", "3306", "apilog", "root", "123456")
+
+	// 插入数据
+	msql.ExecAction("INSERT INTO log(id,level,message) VALUE(?,?,?)", func(err error) {
+		fmt.Println(err)
+	}, 6, 5, "use data")
+
+	// 更新数据
+	msql.ExecAction("UPDATE log SET level=? WHERE id=5", func(err error) {
+		fmt.Println(err)
+	}, 90)
+
+	return
+}
+
+func Test_ExecRows(t *testing.T) {
 	msql := NewSqlDB("127.0.0.1", "3306", "apilog", "root", "123456")
 
 	// 查询数据
@@ -29,16 +45,4 @@ func TestMySql(t *testing.T) {
 	}, &id, &level, &message)
 
 	fmt.Println("count: ", count)
-
-	// 插入数据
-	msql.ExecAction("INSERT INTO log(id,level,message) VALUE(?,?,?)", func(err error) {
-		fmt.Println(err)
-	}, 6, 5, "use data")
-
-	// 更新数据
-	msql.ExecAction("UPDATE log SET level=? WHERE id=5", func(err error) {
-		fmt.Println(err)
-	}, 90)
-
-	return
 }

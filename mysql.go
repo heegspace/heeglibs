@@ -50,6 +50,7 @@ func (this *SqlDB) GetDB() *gorm.DB {
 }
 
 // 查询接口
+//
 // @param statement 查询语句
 // @param callback 查询回调函数   参数： 查询到的值 和  查询状态
 // @param args 查询行的临时存储变量
@@ -173,6 +174,7 @@ func (this *SqlDB) ExecRows(statement string, callback func([][]interface{}, err
 }
 
 // 执行数据操作动作，主要是插入数据和更新数据
+//
 // @param statement 	动作的语句
 // @param callback 执行的回调函数
 // @param args 动作的参数

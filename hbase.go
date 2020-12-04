@@ -29,6 +29,7 @@ func NewHBase() *HBase {
 // 打开hbase普通用户端
 //
 // @param host 	集群的主机地址列表[192.168.0.119:2181,192.169.0.120:2181]
+//
 func (this *HBase) OpenClient(host string) {
 	this.Client = gohbase.NewClient(host)
 
@@ -41,6 +42,7 @@ func (this *HBase) OpenClient(host string) {
 // @param rowkey 		表的rowkey
 //
 // @return []HBaseResult,err
+//
 func (this *HBase) GetRow(table_name string, rowkey string) (r []HBaseResult, err error) {
 	getRequest, err := hrpc.NewGetStr(context.Background(), table_name, rowkey)
 	if nil != err {
@@ -73,6 +75,7 @@ func (this *HBase) GetRow(table_name string, rowkey string) (r []HBaseResult, er
 // @param value 			需要插入或者更新的值
 //
 // @return err
+//
 func (this *HBase) PutCell(table_name string, value HBaseResult) (err error) {
 	values := map[string]map[string][]byte{
 		value.Family: map[string][]byte{
@@ -101,6 +104,7 @@ func (this *HBase) PutCell(table_name string, value HBaseResult) (err error) {
 // @param  columns 		列明
 //
 // @return map[string]HBaseResult,err
+//
 func (this *HBase) GetCell(table_name, rowkey, family string, columns []string) (r map[string]HBaseResult, err error) {
 	faly := map[string][]string{family: columns}
 	getRequest, err := hrpc.NewGetStr(context.Background(), table_name, rowkey,
@@ -136,7 +140,9 @@ func (this *HBase) GetCell(table_name, rowkey, family string, columns []string) 
 // @param value 			删除的值
 //	注： 如果删除的是族，只需要将value中的Qualifier设置为""
 // 	注： 如果删除的是某个列，只需要将value中的value设置为nil
+//
 // @return err
+//
 func (this *HBase) DelCell(table_name string, value HBaseResult) (err error) {
 	if "" == value.Qualifier {
 		// 删除族
@@ -172,6 +178,7 @@ func (this *HBase) DelCell(table_name string, value HBaseResult) (err error) {
 // 打开hbase管理员端
 //
 // @param host 	集群的主机列表[192.168.0.119:2181,192.169.0.120:2181]
+//
 func (this *HBase) OpenAdminClient(host string) {
 	this.AdminClient = gohbase.NewAdminClient(host)
 

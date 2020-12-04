@@ -88,9 +88,11 @@ func aesDecode(token, key string) (subject string, err error) {
 	return
 }
 
-// 使用秘钥key编码src为加密的cookie
+// 使用密钥key对Token数据进行加密
+//
 // @param src	编码的结构数据
 // @param key 	编码的秘钥
+//
 // @return string,error
 //
 func EnCookie(src TokenInfo, key string) (token string, err error) {
@@ -121,9 +123,11 @@ func EnCookie(src TokenInfo, key string) (token string, err error) {
 }
 
 // 使用秘钥key从src中解码cookie
+//
 // @param src 	解码数据
 // @param key 	秘钥key
 // @return TokenInfo,error
+//
 func DeCookie(src string, key string) (token TokenInfo, err error) {
 	if 0 == len(src) {
 		err = errors.New("Token info format error.")

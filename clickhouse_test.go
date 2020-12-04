@@ -17,7 +17,9 @@ type ExampleTest struct {
 	ActionTime  string
 }
 
-func Test_ClickHouse(t *testing.T) {
+// 测试创建数据表
+//
+func Test_ExecTable(t *testing.T) {
 	clchse := NewClickHouse("tcp://127.0.0.1:9000?username=default&password=576188&debug=true")
 
 	clchse.ExecTable(`
@@ -33,12 +35,33 @@ func Test_ClickHouse(t *testing.T) {
 		fmt.Println("Create: ", err)
 	})
 
+	return
+}
+
+// 测试数据表操作
+// 插入数据或更新
+//
+func Test_ExecAction(t *testing.T) {
+	clchse := NewClickHouse("tcp://127.0.0.1:9000?username=default&password=576188&debug=true")
+
 	// 插入数据
 	clchse.ExecAction("INSERT INTO example_test(country_code, os_id, browser_id, categories, action_day, action_time) VALUES(?, ?, ?, ?, ?, ?)",
 		func(err error) {
 			fmt.Println("Insert: ", err)
 		}, "CN", 99, 99, []int16{1, 2, 3}, time.Now(), time.Now(),
 	)
+
+	// 更新数据
+	clchse.ExecAction("UPDATE example_test SET os_id=? WHERE country_code=99", func(err error) {
+		fmt.Println(err)
+	}, 200)
+
+	return
+}
+
+// 测试数据查询
+func Test_ExecRows(t *testing.T) {
+	clchse := NewClickHouse("tcp://127.0.0.1:9000?username=default&password=576188&debug=true")
 
 	// 查询数据
 	var test ExampleTest
@@ -49,6 +72,7 @@ func Test_ClickHouse(t *testing.T) {
 			return
 		}
 
+		// 将查询到的值进行转换
 		for _, v := range rows {
 			var item ExampleTest
 			item.CountryCode = *(v[0].(*string))
@@ -64,11 +88,6 @@ func Test_ClickHouse(t *testing.T) {
 
 	fmt.Println("count: ", count)
 	log.Println(test)
-
-	// 更新数据
-	// clchse.ExecAction("UPDATE example_test SET os_id=? WHERE country_code=99", func(err error) {
-	// 	fmt.Println(err)
-	// }, 200)
 
 	return
 }
