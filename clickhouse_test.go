@@ -46,14 +46,14 @@ func Test_ExecAction(t *testing.T) {
 
 	// 插入数据
 	clchse.ExecAction("INSERT INTO example_test(country_code, os_id, browser_id, categories, action_day, action_time) VALUES(?, ?, ?, ?, ?, ?)",
-		func(err error) {
-			fmt.Println("Insert: ", err)
+		func(rows int64, err error) {
+			fmt.Println("Insert: ", err, rows)
 		}, "CN", 99, 99, []int16{1, 2, 3}, time.Now(), time.Now(),
 	)
 
 	// 更新数据
-	clchse.ExecAction("UPDATE example_test SET os_id=? WHERE country_code=99", func(err error) {
-		fmt.Println(err)
+	clchse.ExecAction("UPDATE example_test SET os_id=? WHERE country_code=99", func(rows int64, err error) {
+		fmt.Println(rows, err)
 	}, 200)
 
 	return

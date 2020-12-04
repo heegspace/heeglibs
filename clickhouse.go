@@ -131,23 +131,11 @@ func (this *ClickHouse) ExecRows(statement string, callback func([][]interface{}
 			case *uint:
 				tem := *v.(*uint)
 				temp = append(temp, &tem)
-			case *uint8:
-				tem := *v.(*uint8)
-				temp = append(temp, &tem)
-			case *uint16:
-				tem := *v.(*uint16)
-				temp = append(temp, &tem)
 			case *uint32:
 				tem := *v.(*uint32)
 				temp = append(temp, &tem)
 			case *uint64:
 				tem := *v.(*uint64)
-				temp = append(temp, &tem)
-			case *[]uint:
-				tem := *v.(*[]uint)
-				temp = append(temp, &tem)
-			case *[]uint8:
-				tem := *v.(*[]uint8)
 				temp = append(temp, &tem)
 			case *[]uint16:
 				tem := *v.(*[]uint16)
@@ -182,7 +170,7 @@ func (this *ClickHouse) ExecRows(statement string, callback func([][]interface{}
 // @param callback  更新回调，其中参数是更新行数和错误状态
 // @param args 		插入的参数
 //
-func (this *ClickHouse) ExecAction(statement string, callback func(int, error), args ...interface{}) (rows int, err error) {
+func (this *ClickHouse) ExecAction(statement string, callback func(int64, error), args ...interface{}) (rows int64, err error) {
 	tx, err := this.GetDB().Begin()
 	if nil != err {
 		callback(0, err)
@@ -197,15 +185,16 @@ func (this *ClickHouse) ExecAction(statement string, callback func(int, error), 
 		return
 	}
 
-	rows, err = stmt.Exec(args...)
+	result, err := stmt.Exec(args...)
 	if nil != err {
-		callback(rows, err)
+		callback(0, err)
 
 		return
 	}
 	tx.Commit()
 
-	callback(nil)
+	rows, _ = result.RowsAffected()
+	callback(rows, nil)
 	return
 }
 
@@ -226,7 +215,7 @@ func (this *ClickHouse) ExecTable(statement string, callback func(error), args .
 		return
 	}
 
-	rows, err := result.RowsAffected()
+	_, err = result.RowsAffected()
 	if nil != err {
 		return
 	}
