@@ -20,7 +20,7 @@ type ExampleTest struct {
 func Test_ClickHouse(t *testing.T) {
 	clchse := NewClickHouse("tcp://127.0.0.1:9000?username=default&password=576188&debug=true")
 
-	clchse.ExecAction(`
+	clchse.ExecTable(`
 		CREATE TABLE example_test (
 			country_code FixedString(2),
 			os_id        UInt8,
@@ -34,7 +34,7 @@ func Test_ClickHouse(t *testing.T) {
 	})
 
 	// 插入数据
-	clchse.ExecInsert("INSERT INTO example_test(country_code, os_id, browser_id, categories, action_day, action_time) VALUES(?, ?, ?, ?, ?, ?)",
+	clchse.ExecAction("INSERT INTO example_test(country_code, os_id, browser_id, categories, action_day, action_time) VALUES(?, ?, ?, ?, ?, ?)",
 		func(err error) {
 			fmt.Println("Insert: ", err)
 		}, "CN", 99, 99, []int16{1, 2, 3}, time.Now(), time.Now(),

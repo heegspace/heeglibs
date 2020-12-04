@@ -52,8 +52,10 @@ func (this *SqlDB) GetDB() *gorm.DB {
 // 查询接口
 // @param statement 查询语句
 // @param callback 查询回调函数   参数： 查询到的值 和  查询状态
-// @param args 查询行的临时存储变量【主要用于查询的列,目前仅仅支持string和float64,也就是要查询的所有列的类型
+// @param args 查询行的临时存储变量
+//
 // @return count,err
+//
 func (this *SqlDB) ExecRows(statement string, callback func([][]interface{}, error), args ...interface{}) (count int, err error) {
 	db := this.GetDB()
 	rows, err := db.Raw(statement).Rows()
@@ -62,8 +64,9 @@ func (this *SqlDB) ExecRows(statement string, callback func([][]interface{}, err
 
 		return
 	}
+	defer rows.Close()
 
-	sum := 0
+	count = 0
 	value := make([][]interface{}, 0)
 	for rows.Next() {
 		err = rows.Scan(args...)
@@ -74,27 +77,98 @@ func (this *SqlDB) ExecRows(statement string, callback func([][]interface{}, err
 		temp := make([]interface{}, 0)
 		for _, v := range args {
 			switch v.(type) {
-			case *string:
-				tem := *v.(*string)
+			case *byte:
+				tem := *v.(*byte)
+				temp = append(temp, &tem)
+			case *[]byte:
+				tem := *v.(*[]byte)
+				temp = append(temp, &tem)
+			case *float32:
+				tem := *v.(*float32)
 				temp = append(temp, &tem)
 			case *float64:
 				tem := *v.(*float64)
 				temp = append(temp, &tem)
+			case *[]float32:
+				tem := *v.(*[]float32)
+				temp = append(temp, &tem)
+			case *[]float64:
+				tem := *v.(*[]float64)
+				temp = append(temp, &tem)
+			case *int:
+				tem := *v.(*int)
+				temp = append(temp, &tem)
+			case *int8:
+				tem := *v.(*int8)
+				temp = append(temp, &tem)
+			case *int16:
+				tem := *v.(*int16)
+				temp = append(temp, &tem)
+			case *int32:
+				tem := *v.(*int32)
+				temp = append(temp, &tem)
 			case *int64:
 				tem := *v.(*int64)
+				temp = append(temp, &tem)
+			case *[]int:
+				tem := *v.(*[]int)
+				temp = append(temp, &tem)
+			case *[]int8:
+				tem := *v.(*[]int8)
+				temp = append(temp, &tem)
+			case *[]int16:
+				tem := *v.(*[]int16)
+				temp = append(temp, &tem)
+			case *[]int32:
+				tem := *v.(*[]int32)
+				temp = append(temp, &tem)
+			case *[]int64:
+				tem := *v.(*[]int64)
+				temp = append(temp, &tem)
+			case *uint:
+				tem := *v.(*uint)
+				temp = append(temp, &tem)
+			case *uint8:
+				tem := *v.(*uint8)
+				temp = append(temp, &tem)
+			case *uint16:
+				tem := *v.(*uint16)
+				temp = append(temp, &tem)
+			case *uint32:
+				tem := *v.(*uint32)
+				temp = append(temp, &tem)
+			case *uint64:
+				tem := *v.(*uint64)
+				temp = append(temp, &tem)
+			case *[]uint:
+				tem := *v.(*[]uint)
+				temp = append(temp, &tem)
+			case *[]uint8:
+				tem := *v.(*[]uint8)
+				temp = append(temp, &tem)
+			case *[]uint16:
+				tem := *v.(*[]uint16)
+				temp = append(temp, &tem)
+			case *[]uint32:
+				tem := *v.(*[]uint32)
+				temp = append(temp, &tem)
+			case *[]uint64:
+				tem := *v.(*[]uint64)
+				temp = append(temp, &tem)
+			case *string:
+				tem := *v.(*string)
+				temp = append(temp, &tem)
+			case *[]string:
+				tem := *v.(*[]string)
 				temp = append(temp, &tem)
 			}
 		}
 
-		sum = sum + 1
+		count += 1
 		value = append(value, temp)
 	}
 
-	defer rows.Close()
 	callback(value, err)
-
-	count = sum
-
 	return
 }
 
@@ -102,7 +176,9 @@ func (this *SqlDB) ExecRows(statement string, callback func([][]interface{}, err
 // @param statement 	动作的语句
 // @param callback 执行的回调函数
 // @param args 动作的参数
+//
 // @return err
+//
 func (this *SqlDB) ExecAction(statement string, callback func(error), args ...interface{}) (err error) {
 	db := this.GetDB()
 	err = db.Exec(statement, args...).Error

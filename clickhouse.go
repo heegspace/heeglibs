@@ -6,12 +6,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"reflect"
 
 	"github.com/ClickHouse/clickhouse-go"
 	_ "github.com/ClickHouse/clickhouse-go"
 	_ "github.com/go-sql-driver/mysql"
-	log "github.com/sirupsen/logrus"
 )
 
 type ClickHouse struct {
@@ -53,7 +51,8 @@ func (this *ClickHouse) GetDB() *sql.DB {
 //
 // @param statement 查询语句
 // @param callback 查询回调函数   参数： 查询到的值 和  查询状态
-// @param args 查询行的临时存储变量【主要用于查询的列,目前仅仅支持string和float64,也就是要查询的所有列的类型
+// @param args 查询行的临时存储变量
+//
 // @return count,err
 //
 func (this *ClickHouse) ExecRows(statement string, callback func([][]interface{}, error), args ...interface{}) (count int, err error) {
@@ -76,19 +75,91 @@ func (this *ClickHouse) ExecRows(statement string, callback func([][]interface{}
 
 		temp := make([]interface{}, 0)
 		for _, v := range args {
-			log.Println(reflect.TypeOf(v))
+			// log.Println(reflect.TypeOf(v))
 			switch v.(type) {
-			case *string:
-				tem := *v.(*string)
+			case *byte:
+				tem := *v.(*byte)
+				temp = append(temp, &tem)
+			case *[]byte:
+				tem := *v.(*[]byte)
+				temp = append(temp, &tem)
+			case *float32:
+				tem := *v.(*float32)
 				temp = append(temp, &tem)
 			case *float64:
 				tem := *v.(*float64)
 				temp = append(temp, &tem)
+			case *[]float32:
+				tem := *v.(*[]float32)
+				temp = append(temp, &tem)
+			case *[]float64:
+				tem := *v.(*[]float64)
+				temp = append(temp, &tem)
+			case *int:
+				tem := *v.(*int)
+				temp = append(temp, &tem)
+			case *int8:
+				tem := *v.(*int8)
+				temp = append(temp, &tem)
+			case *int16:
+				tem := *v.(*int16)
+				temp = append(temp, &tem)
+			case *int32:
+				tem := *v.(*int32)
+				temp = append(temp, &tem)
 			case *int64:
 				tem := *v.(*int64)
 				temp = append(temp, &tem)
+			case *[]int:
+				tem := *v.(*[]int)
+				temp = append(temp, &tem)
+			case *[]int8:
+				tem := *v.(*[]int8)
+				temp = append(temp, &tem)
 			case *[]int16:
 				tem := *v.(*[]int16)
+				temp = append(temp, &tem)
+			case *[]int32:
+				tem := *v.(*[]int32)
+				temp = append(temp, &tem)
+			case *[]int64:
+				tem := *v.(*[]int64)
+				temp = append(temp, &tem)
+			case *uint:
+				tem := *v.(*uint)
+				temp = append(temp, &tem)
+			case *uint8:
+				tem := *v.(*uint8)
+				temp = append(temp, &tem)
+			case *uint16:
+				tem := *v.(*uint16)
+				temp = append(temp, &tem)
+			case *uint32:
+				tem := *v.(*uint32)
+				temp = append(temp, &tem)
+			case *uint64:
+				tem := *v.(*uint64)
+				temp = append(temp, &tem)
+			case *[]uint:
+				tem := *v.(*[]uint)
+				temp = append(temp, &tem)
+			case *[]uint8:
+				tem := *v.(*[]uint8)
+				temp = append(temp, &tem)
+			case *[]uint16:
+				tem := *v.(*[]uint16)
+				temp = append(temp, &tem)
+			case *[]uint32:
+				tem := *v.(*[]uint32)
+				temp = append(temp, &tem)
+			case *[]uint64:
+				tem := *v.(*[]uint64)
+				temp = append(temp, &tem)
+			case *string:
+				tem := *v.(*string)
+				temp = append(temp, &tem)
+			case *[]string:
+				tem := *v.(*[]string)
 				temp = append(temp, &tem)
 			}
 		}
@@ -101,14 +172,14 @@ func (this *ClickHouse) ExecRows(statement string, callback func([][]interface{}
 	return
 }
 
-// 插入1条数据
+// 执行数据更新操作
+// 主要是插入数据和更新数据
 //
 // @param statement 插入语句  注： 其中必须是带?的语句
 // @param callback  插入回调
 // @param args 		插入的参数
 //
-//
-func (this *ClickHouse) ExecInsert(statement string, callback func(error), args ...interface{}) (err error) {
+func (this *ClickHouse) ExecAction(statement string, callback func(error), args ...interface{}) (err error) {
 	tx, err := this.GetDB().Begin()
 	if nil != err {
 		callback(err)
@@ -129,21 +200,21 @@ func (this *ClickHouse) ExecInsert(statement string, callback func(error), args 
 
 		return
 	}
-
 	tx.Commit()
-	log.Println(statement, rows)
+
 	callback(nil)
 	return
 }
 
-// 执行数据操作动作，主要是插入数据和更新数据
+// 执行数据表的操作动作
+// 主要是创建表和删除表
 //
 // @param statement 	动作的语句
 // @param callback 执行的回调函数
 // @param args 动作的参数
 // @return err
 //
-func (this *ClickHouse) ExecAction(statement string, callback func(error), args ...interface{}) (err error) {
+func (this *ClickHouse) ExecTable(statement string, callback func(error), args ...interface{}) (err error) {
 	db := this.GetDB()
 	result, err := db.Exec(statement, args...)
 	if nil != err {
@@ -156,8 +227,6 @@ func (this *ClickHouse) ExecAction(statement string, callback func(error), args 
 	if nil != err {
 		return
 	}
-
-	log.Println(statement, ", rows: ", rows)
 
 	callback(err)
 	return
