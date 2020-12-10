@@ -118,6 +118,7 @@ func (this *HttpClient) Get() (r []byte, err error) {
 	client := &http.Client{
 		Timeout: 1 * time.Second,
 	}
+
 	res, err := client.Do(this.Request)
 	if nil != err {
 		return
@@ -142,7 +143,11 @@ func (this *HttpClient) Put() (r []byte, err error) {
 	}
 
 	this.Request.Method = "PUT"
-	res, err := http.DefaultClient.Do(this.Request)
+	client := &http.Client{
+		Timeout: 1 * time.Second,
+	}
+
+	res, err := client.Do(this.Request)
 	if nil != err {
 		return
 	}
@@ -165,7 +170,11 @@ func (this *HttpClient) Delete() (r []byte, err error) {
 	}
 
 	this.Request.Method = "DELETE"
-	res, err := http.DefaultClient.Do(this.Request)
+	client := &http.Client{
+		Timeout: 1 * time.Second,
+	}
+
+	res, err := client.Do(this.Request)
 	if nil != err {
 		return
 	}
@@ -188,7 +197,11 @@ func (this *HttpClient) Post() (r []byte, err error) {
 	}
 
 	this.Request.Method = "POST"
-	res, err := http.DefaultClient.Do(this.Request)
+	client := &http.Client{
+		Timeout: 1 * time.Second,
+	}
+
+	res, err := client.Do(this.Request)
 	if nil != err {
 		return
 	}
