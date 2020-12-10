@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type HttpClient struct {
@@ -107,13 +110,23 @@ func (this *HttpClient) NewRequest(url string, data interface{}) (err error) {
 //
 func (this *HttpClient) Get() (r []byte, err error) {
 	if nil == this.Request {
-		err = GenError("Http Request didn't create, please call NewRequest to create!")
+		err = errors.New("Http Request didn't create, please call NewRequest to create!")
 
 		return
 	}
 
+	RoundTripper := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout:   10 * time.Second,
+			KeepAlive: 10 * time.Second,
+			DualStack: true,
+		}).DialContext,
+	}
+
 	this.Request.Method = "GET"
-	res, err := http.DefaultClient.Do(this.Request)
+	client := &http.Client{Transport: RoundTripper}
+	res, err := client.Do(this.Request)
 	if nil != err {
 		return
 	}
@@ -130,7 +143,7 @@ func (this *HttpClient) Get() (r []byte, err error) {
 //
 func (this *HttpClient) Put() (r []byte, err error) {
 	if nil == this.Request {
-		err = GenError("Http Request didn't create, please call NewRequest to create!")
+		err = errors.New("Http Request didn't create, please call NewRequest to create!")
 
 		return
 	}
@@ -153,7 +166,7 @@ func (this *HttpClient) Put() (r []byte, err error) {
 //
 func (this *HttpClient) Delete() (r []byte, err error) {
 	if nil == this.Request {
-		err = GenError("Http Request didn't create, please call NewRequest to create!")
+		err = errors.New("Http Request didn't create, please call NewRequest to create!")
 
 		return
 	}
@@ -176,7 +189,7 @@ func (this *HttpClient) Delete() (r []byte, err error) {
 //
 func (this *HttpClient) Post() (r []byte, err error) {
 	if nil == this.Request {
-		err = GenError("Http Request didn't create, please call NewRequest to create!")
+		err = errors.New("Http Request didn't create, please call NewRequest to create!")
 
 		return
 	}
