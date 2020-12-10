@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -115,23 +114,17 @@ func (this *HttpClient) Get() (r []byte, err error) {
 		return
 	}
 
-	RoundTripper := &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		DialContext: (&net.Dialer{
-			Timeout:   10 * time.Second,
-			KeepAlive: 10 * time.Second,
-			DualStack: true,
-		}).DialContext,
-	}
-
 	this.Request.Method = "GET"
-	client := &http.Client{Transport: RoundTripper}
+	client := &http.Client{
+		Timeout: 1 * time.Second,
+	}
 	res, err := client.Do(this.Request)
 	if nil != err {
 		return
 	}
 
 	defer res.Body.Close()
+
 	r, err = ioutil.ReadAll(res.Body)
 
 	return
