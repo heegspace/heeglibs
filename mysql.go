@@ -1,15 +1,11 @@
 package heeglibs
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
-)
-
-var (
-	NotFound = gorm.ErrRecordNotFound
 )
 
 type SqlDB struct {
@@ -19,7 +15,7 @@ type SqlDB struct {
 	Port     string
 	DbName   string
 
-	Db *gorm.DB
+	Db *sql.DB
 }
 
 func NewSqlDB(host, port, dbname, username, password string) *SqlDB {
@@ -34,7 +30,7 @@ func NewSqlDB(host, port, dbname, username, password string) *SqlDB {
 	return sql
 }
 
-func (this *SqlDB) GetDB() *gorm.DB {
+func (this *SqlDB) GetDB() *sql.DB {
 	if this.Db == nil {
 		var err error
 
@@ -59,7 +55,7 @@ func (this *SqlDB) GetDB() *gorm.DB {
 //
 func (this *SqlDB) ExecRows(statement string, callback func([][]interface{}, error), args ...interface{}) (count int, err error) {
 	db := this.GetDB()
-	rows, err := db.Raw(statement).Rows()
+	rows, err := db.Query(statement)
 	if nil != err {
 		callback(nil, err)
 
@@ -169,33 +165,56 @@ func (this *SqlDB) ExecRows(statement string, callback func([][]interface{}, err
 //
 // @return err
 //
-func (this *SqlDB) ExecAction(statement string, callback func(error), args ...interface{}) (err error) {
+func (this *SqlDB) ExecAction(statement string, callback func(int64, error), args ...interface{}) (count int64, err error) {
+	count = 0
+
 	db := this.GetDB()
-	err = db.Exec(statement, args...).Error
+	result, err := db.Exec(statement, args...)
 	if nil != err {
-		callback(err)
+		callback(0, err)
 
 		return
 	}
 
-	callback(err)
-
+	rows, _ := result.LastInsertId()
+	callback(rows, err)
 	return
 }
 
-// 设置数据库为调试模式
-func (this *SqlDB) LogMode(mode bool) {
-	this.Db.LogMode(true)
+// 插入数据
+//
+// @param statement 	动作的语句
+// @param callback 执行的回调函数
+// @param args 动作的参数
+//
+// @return err
+//
+func (this *SqlDB) ExecInsert(statement string, callback func(int64, error), args ...interface{}) (count int64, err error) {
+	count = 0
+
+	db := this.GetDB()
+	result, err := db.Exec(statement, args...)
+	if nil != err {
+		callback(0, err)
+
+		return
+	}
+
+	count, _ = result.RowsAffected()
+	lastId, _ := result.LastInsertId()
+
+	callback(lastId, err)
+	return
 }
 
 // 设置数据库空闲连接数大小
 func (this *SqlDB) SetMaxIdleConns(count int) {
-	this.Db.DB().SetMaxIdleConns(count)
+	this.Db.SetMaxIdleConns(count)
 }
 
 // 最大打开连接数
 func (this *SqlDB) SetMaxOpenConns(count int) {
-	this.Db.DB().SetMaxOpenConns(count)
+	this.Db.SetMaxOpenConns(count)
 }
 
 func (this *SqlDB) enable() bool {
@@ -208,7 +227,7 @@ func (this *SqlDB) enable() bool {
 	return true
 }
 
-func (this *SqlDB) getdb() (*gorm.DB, error) {
+func (this *SqlDB) getdb() (*sql.DB, error) {
 	if !this.enable() {
 		return nil, errors.New("mysql connect info error.")
 	}
@@ -221,16 +240,18 @@ func (this *SqlDB) getdb() (*gorm.DB, error) {
 		this.DbName,
 	)
 
-	db, err := gorm.Open("mysql", server)
+	db, err := sql.Open("mysql", server)
 	if err != nil {
+		return nil, err
+	}
+	err = db.Ping()
+	if nil != err {
 		return nil, err
 	}
 
 	this.Db = db
-	this.Db.LogMode(true)
-	this.Db.DB().SetMaxIdleConns(20)  //连接池的空闲数大小
-	this.Db.DB().SetMaxOpenConns(100) //最大打开连接数
-	this.Db.SingularTable(true)
+	this.Db.SetMaxIdleConns(20)  //连接池的空闲数大小
+	this.Db.SetMaxOpenConns(100) //最大打开连接数
 
 	return this.Db, nil
 }

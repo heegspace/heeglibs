@@ -9,12 +9,12 @@ func Test_ExecAction(t *testing.T) {
 	msql := NewSqlDB("127.0.0.1", "3306", "apilog", "root", "123456")
 
 	// 插入数据
-	msql.ExecAction("INSERT INTO log(id,level,message) VALUE(?,?,?)", func(err error) {
+	msql.ExecAction("INSERT INTO log(id,level,message) VALUE(?,?,?)", func(rows int64, err error) {
 		fmt.Println(err)
 	}, 6, 5, "use data")
 
 	// 更新数据
-	msql.ExecAction("UPDATE log SET level=? WHERE id=5", func(err error) {
+	msql.ExecAction("UPDATE log SET level=? WHERE id=5", func(rows int64, err error) {
 		fmt.Println(err)
 	}, 90)
 
