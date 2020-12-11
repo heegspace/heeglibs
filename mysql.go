@@ -1,6 +1,7 @@
 package heeglibs
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -168,11 +169,21 @@ func (this *SqlDB) ExecRows(statement string, callback func([][]interface{}, err
 func (this *SqlDB) ExecAction(statement string, callback func(int64, error), args ...interface{}) (count int64, err error) {
 	count = 0
 
-	db := this.GetDB()
-	result, err := db.Exec(statement, args...)
-	if nil != err {
+	tx, err := this.GetDB().BeginTx(context.TODO(), &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
 		callback(0, err)
+		return
+	}
+	result, err := tx.Exec(statement, args...)
+	if nil != err {
+		_ = tx.Rollback()
 
+		callback(0, err)
+		return
+	}
+
+	if err = tx.Commit(); err != nil {
+		callback(0, err)
 		return
 	}
 
