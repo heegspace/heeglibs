@@ -1,6 +1,9 @@
 package heeglibs
 
 import (
+	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/md5"
 	"crypto/rand"
 	"encoding/hex"
@@ -102,6 +105,68 @@ func mapMD5(secret string, param map[string]interface{}) string {
 	signStr = MD5(signStr)
 
 	return strings.ToUpper(signStr)
+}
+
+var ivspec = []byte("0000000000000000")
+
+func pkCS5Padding(ciphertext []byte, blockSize int) []byte {
+	padding := blockSize - len(ciphertext)%blockSize
+	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
+
+	return append(ciphertext, padtext...)
+}
+func pkCS5Trimming(encrypt []byte) []byte {
+	padding := encrypt[len(encrypt)-1]
+
+	return encrypt[:len(encrypt)-int(padding)]
+}
+
+func AesEncode(src, key string) (value string, err error) {
+	block, err := aes.NewCipher([]byte(key))
+	if err != nil {
+		fmt.Println("key error1", err)
+		return
+	}
+	if src == "" {
+		fmt.Println("plain content empty")
+		err = errors.New("plain content empty")
+		return
+	}
+	ecb := cipher.NewCBCEncrypter(block, ivspec)
+	content := []byte(src)
+	content = pkCS5Padding(content, block.BlockSize())
+	crypted := make([]byte, len(content))
+	ecb.CryptBlocks(crypted, content)
+
+	value = hex.EncodeToString(crypted)
+
+	return
+}
+
+func AesDecode(token, key string) (data string, err error) {
+	crypted, err := hex.DecodeString(strings.ToLower(token))
+	if err != nil || len(crypted) == 0 {
+		fmt.Println("plain content empty")
+		err = errors.New("plain content empty")
+
+		return
+	}
+
+	block, err := aes.NewCipher([]byte(key))
+	if err != nil {
+		fmt.Println("key error1", err)
+		err = errors.New("key error1")
+
+		return
+	}
+
+	ecb := cipher.NewCBCDecrypter(block, ivspec)
+	decrypted := make([]byte, len(crypted))
+	ecb.CryptBlocks(decrypted, crypted)
+
+	data = string(pkCS5Trimming(decrypted))
+
+	return
 }
 
 // 发送短信验证码
