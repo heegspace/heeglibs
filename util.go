@@ -14,6 +14,7 @@ import (
 	"math/big"
 	"net"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -185,24 +186,24 @@ func IpToInt64(ip string) int64 {
 			return 0
 		}
 
-		b0, _ := strconv.Aoti(bits[0])
-		b1, _ := strconv.Aoti(bits[1])
-		b2, _ := strconv.Aoti(bits[2])
-		b3, _ := strconv.Aoti(bits[3])
+		b0, _ := strconv.Atoi(bits[0])
+		b1, _ := strconv.Atoi(bits[1])
+		b2, _ := strconv.Atoi(bits[2])
+		b3, _ := strconv.Atoi(bits[3])
 
 		b0 = b0 << 24
 		b0 += b1 << 16
 		b0 += b2 << 8
 		b0 += b3
 
-		return b0
+		return int64(b0)
 	}
 
-	if nil != IP.To6() {
+	if nil != IP.To16() {
 		b0 := big.NewInt(0)
-		b0.SetBytes(IPv6Address.To16())
+		b0.SetBytes(IP.To16())
 
-		return b0
+		return b0.Int64()
 	}
 
 	return 0
