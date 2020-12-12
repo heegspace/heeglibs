@@ -11,6 +11,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/big"
+	"net"
 	"sort"
 	"strings"
 	"time"
@@ -167,6 +169,43 @@ func AesDecode(token, key string) (data string, err error) {
 	data = string(pkCS5Trimming(decrypted))
 
 	return
+}
+
+// ip地址转到整数
+//
+func IpToInt64(ip string) int64 {
+	IP := net.ParseIP(ip)
+	if nil == IP {
+		return 0
+	}
+
+	if nil != IP.To4() {
+		bits := strings.Split(ip, ".")
+		if 4 > len(bits) {
+			return 0
+		}
+
+		b0, _ := strconv.Aoti(bits[0])
+		b1, _ := strconv.Aoti(bits[1])
+		b2, _ := strconv.Aoti(bits[2])
+		b3, _ := strconv.Aoti(bits[3])
+
+		b0 = b0 << 24
+		b0 += b1 << 16
+		b0 += b2 << 8
+		b0 += b3
+
+		return b0
+	}
+
+	if nil != IP.To6() {
+		b0 := big.NewInt(0)
+		b0.SetBytes(IPv6Address.To16())
+
+		return b0
+	}
+
+	return 0
 }
 
 // 发送短信验证码
