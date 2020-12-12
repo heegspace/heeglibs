@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 
+	log "github.com/sirupsen/logrus"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -17,6 +19,8 @@ type SqlDB struct {
 	DbName   string
 
 	Db *sql.DB
+
+	DEBUG bool
 }
 
 func NewSqlDB(host, port, dbname, username, password string) *SqlDB {
@@ -58,6 +62,8 @@ func (this *SqlDB) ExecRows(statement string, callback func([][]interface{}, err
 	db := this.GetDB()
 	rows, err := db.Query(statement)
 	if nil != err {
+		this.debug(err, statement)
+
 		callback(nil, err)
 
 		return
@@ -69,6 +75,8 @@ func (this *SqlDB) ExecRows(statement string, callback func([][]interface{}, err
 	for rows.Next() {
 		err = rows.Scan(args...)
 		if nil != err {
+			this.debug(err, statement)
+
 			continue
 		}
 
@@ -154,6 +162,7 @@ func (this *SqlDB) ExecRows(statement string, callback func([][]interface{}, err
 		value = append(value, temp)
 	}
 
+	this.debug(statement)
 	callback(value, err)
 	return
 }
@@ -171,11 +180,15 @@ func (this *SqlDB) ExecAction(statement string, callback func(int64, error), arg
 
 	tx, err := this.GetDB().BeginTx(context.TODO(), &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
+		this.debug(err, statement)
+
 		callback(0, err)
 		return
 	}
 	result, err := tx.Exec(statement, args...)
 	if nil != err {
+		this.debug(err, statement)
+
 		_ = tx.Rollback()
 
 		callback(0, err)
@@ -183,10 +196,12 @@ func (this *SqlDB) ExecAction(statement string, callback func(int64, error), arg
 	}
 
 	if err = tx.Commit(); err != nil {
+		this.debug(err, statement)
 		callback(0, err)
 		return
 	}
 
+	this.debug(statement)
 	rows, _ := result.LastInsertId()
 	callback(rows, err)
 	return
@@ -206,6 +221,7 @@ func (this *SqlDB) ExecInsert(statement string, callback func(int64, error), arg
 	db := this.GetDB()
 	result, err := db.Exec(statement, args...)
 	if nil != err {
+		this.debug(err, statement)
 		callback(0, err)
 
 		return
@@ -214,6 +230,7 @@ func (this *SqlDB) ExecInsert(statement string, callback func(int64, error), arg
 	count, _ = result.RowsAffected()
 	lastId, _ := result.LastInsertId()
 
+	this.debug(statement)
 	callback(lastId, err)
 	return
 }
@@ -226,6 +243,18 @@ func (this *SqlDB) SetMaxIdleConns(count int) {
 // 最大打开连接数
 func (this *SqlDB) SetMaxOpenConns(count int) {
 	this.Db.SetMaxOpenConns(count)
+}
+
+func (this *SqlDB) SetDebug(debug bool) {
+	this.DEBUG = debug
+
+	return
+}
+
+func (this *SqlDB) debug(args ...interface{}) {
+	log.Debug(args...)
+
+	return
 }
 
 func (this *SqlDB) enable() bool {
@@ -251,6 +280,7 @@ func (this *SqlDB) getdb() (*sql.DB, error) {
 		this.DbName,
 	)
 
+	this.debug(server)
 	db, err := sql.Open("mysql", server)
 	if err != nil {
 		return nil, err
