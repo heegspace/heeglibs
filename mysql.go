@@ -245,14 +245,18 @@ func (this *SqlDB) SetMaxOpenConns(count int) {
 	this.Db.SetMaxOpenConns(count)
 }
 
-func (this *SqlDB) SetDebug(debug bool) {
+func (this *SqlDB) Debug(debug bool) {
 	this.DEBUG = debug
 
 	return
 }
 
 func (this *SqlDB) debug(args ...interface{}) {
-	log.Debug(args...)
+	if !this.DEBUG {
+		return
+	}
+
+	log.Info(args...)
 
 	return
 }
