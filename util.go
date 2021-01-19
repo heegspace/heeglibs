@@ -172,6 +172,66 @@ func AesDecode(token, key string) (data string, err error) {
 	return
 }
 
+// AES加密数据
+//
+// @param origInData	需要加密的数据
+// @param keyIn		 	加密的key (32byte)
+// @return encrypt 		加密以后的数据
+// @return err
+//
+func AesEncrypt(origInData, keyIn string) (encrypt string, err error) {
+	origData := []byte(origInData)
+	key := []byte(keyIn)
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return
+	}
+
+	blockSize := block.BlockSize()
+	origData = PKCS5Padding(origData, blockSize)
+	blockMode := cipher.NewCBCEncrypter(block, key[:blockSize])
+	crypted := make([]byte, len(origData))
+	blockMode.CryptBlocks(crypted, origData)
+
+	encrypt = string(crypted)
+	return
+}
+
+// AES解密数据
+//
+// @param crypted 		需要解密的数据
+// @param keyIn 		解密数据的key(32byte)
+// @return data 		解密以后的数据
+// @return err
+//
+func AesDecrypt(crypted, keyIn string) (data string, err error) {
+	key := []byte(keyIn)
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return
+	}
+	blockSize := block.BlockSize()
+	blockMode := cipher.NewCBCDecrypter(block, key[:blockSize])
+	origData := make([]byte, len(crypted))
+	lencrypted := len(crypted)
+	if lencrypted == 0 || lencrypted%blockSize != 0 {
+		err = errors.New("PKCS5UnPadding length:" + strconv.FormatUint(uint64(lencrypted), 10))
+
+		return
+	}
+
+	blockMode.CryptBlocks(origData, []byte(crypted))
+	origData = PKCS5UnPadding(origData)
+	if origData == nil {
+		err = erros.errors.New("PKCS5UnPadding error")
+
+		return
+	}
+
+	data = string(origData)
+	return
+}
+
 // ip地址转到整数
 //
 func IpToInt64(ip string) int64 {
