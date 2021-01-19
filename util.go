@@ -118,6 +118,7 @@ func pkCS5Padding(ciphertext []byte, blockSize int) []byte {
 
 	return append(ciphertext, padtext...)
 }
+
 func pkCS5Trimming(encrypt []byte) []byte {
 	padding := encrypt[len(encrypt)-1]
 
@@ -172,6 +173,25 @@ func AesDecode(token, key string) (data string, err error) {
 	return
 }
 
+func PKCS5Padding(ciphertext []byte, blockSize int) []byte {
+	padding := blockSize - len(ciphertext)%blockSize
+	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
+	return append(ciphertext, padtext...)
+}
+
+func PKCS5UnPadding(origData []byte) []byte {
+	length := len(origData)
+	if length == 0 {
+		return nil
+	}
+	unpaddByte := origData[length-1]
+	unpadding := int(unpaddByte)
+	if length <= unpadding {
+		return nil
+	}
+	return origData[:(length - unpadding)]
+}
+
 // AES加密数据
 //
 // @param origInData	需要加密的数据
@@ -223,7 +243,7 @@ func AesDecrypt(crypted, keyIn string) (data string, err error) {
 	blockMode.CryptBlocks(origData, []byte(crypted))
 	origData = PKCS5UnPadding(origData)
 	if origData == nil {
-		err = erros.errors.New("PKCS5UnPadding error")
+		err = errors.New("PKCS5UnPadding error")
 
 		return
 	}
