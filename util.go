@@ -1,7 +1,6 @@
 package heeglibs
 
 import (
-	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/md5"
@@ -17,6 +16,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	pkcs7 "github.com/mergermarket/go-pkcs7"
 )
 
 // 根据提供的msg产生一个error对象
@@ -110,62 +111,6 @@ func mapMD5(secret string, param map[string]interface{}) string {
 	return strings.ToUpper(signStr)
 }
 
-var (
-	// ErrInvalidBlockSize indicates hash blocksize <= 0.
-	ErrInvalidBlockSize = errors.New("invalid blocksize")
-
-	// ErrInvalidPKCS7Data indicates bad input to PKCS7 pad or unpad.
-	ErrInvalidPKCS7Data = errors.New("invalid PKCS7 data (empty or not padded)")
-
-	// ErrInvalidPKCS7Padding indicates PKCS7 unpad fails to bad input.
-	ErrInvalidPKCS7Padding = errors.New("invalid padding on input")
-)
-
-// pkcs7Pad right-pads the given byte slice with 1 to n bytes, where
-// n is the block size. The size of the result is x times n, where x
-// is at least 1.
-//
-func Pkcs7Pad(b []byte, blocksize int) ([]byte, error) {
-	if blocksize <= 0 {
-		return nil, ErrInvalidBlockSize
-	}
-	if b == nil || len(b) == 0 {
-		return nil, ErrInvalidPKCS7Data
-	}
-	n := blocksize - (len(b) % blocksize)
-	pb := make([]byte, len(b)+n)
-	copy(pb, b)
-	copy(pb[len(b):], bytes.Repeat([]byte{byte(n)}, n))
-	return pb, nil
-}
-
-// pkcs7Unpad validates and unpads data from the given bytes slice.
-// The returned value will be 1 to n bytes smaller depending on the
-// amount of padding, where n is the block size.
-//
-func Pkcs7Unpad(b []byte, blocksize int) ([]byte, error) {
-	if blocksize <= 0 {
-		return nil, ErrInvalidBlockSize
-	}
-	if b == nil || len(b) == 0 {
-		return nil, ErrInvalidPKCS7Data
-	}
-	if len(b)%blocksize != 0 {
-		return nil, ErrInvalidPKCS7Padding
-	}
-	c := b[len(b)-1]
-	n := int(c)
-	if n == 0 || n > len(b) {
-		return nil, ErrInvalidPKCS7Padding
-	}
-	for i := 0; i < n; i++ {
-		if b[len(b)-n+i] != c {
-			return nil, ErrInvalidPKCS7Padding
-		}
-	}
-	return b[:len(b)-n], nil
-}
-
 // AES加密数据
 //
 // @param origInData	需要加密的数据
@@ -175,29 +120,27 @@ func Pkcs7Unpad(b []byte, blocksize int) ([]byte, error) {
 //
 func AesEncode(origInData, keyIn string) (encrypt string, err error) {
 	key := []byte(keyIn)
-
-	// Create the AES cipher
+	plainText := []byte(origInData)
+	plainText, err = pkcs7.Pad(plainText, aes.BlockSize)
+	if err != nil {
+		return
+	}
+	if len(plainText)%aes.BlockSize != 0 {
+		err = fmt.Errorf(`plainText: "%s" has the wrong block size`, plainText)
+		return
+	}
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return
 	}
-	paddata, err := Pkcs7Pad([]byte(origInData), block.BlockSize())
-	if nil != err {
+	cipherText := make([]byte, aes.BlockSize+len(plainText))
+	iv := cipherText[:aes.BlockSize]
+	if _, err = io.ReadFull(rand.Reader, iv); err != nil {
 		return
 	}
-
-	// The IV needs to be unique, but not secure. Therefore it's common to
-	// include it at the beginning of the ciphertext.
-	ciphertext := make([]byte, aes.BlockSize+len(paddata))
-	iv := ciphertext[:aes.BlockSize]
-	_, err = io.ReadFull(rand.Reader, iv)
-	if nil != err {
-		return
-	}
-	bm := cipher.NewCBCEncrypter(block, iv)
-	bm.CryptBlocks(ciphertext[aes.BlockSize:], []byte(paddata))
-
-	encrypt = string(ciphertext)
+	mode := cipher.NewCBCEncrypter(block, iv)
+	mode.CryptBlocks(cipherText[aes.BlockSize:], plainText)
+	encrypt = fmt.Sprintf("%x", cipherText)
 	return
 }
 
@@ -210,20 +153,29 @@ func AesEncode(origInData, keyIn string) (encrypt string, err error) {
 //
 func AesDecode(crypted, keyIn string) (data string, err error) {
 	key := []byte(keyIn)
-	// Create the AES cipher
+	cipherText, _ := hex.DecodeString(crypted)
 	block, err := aes.NewCipher(key)
-	if nil != err {
+	if err != nil {
+		return
+	}
+	if len(cipherText) < aes.BlockSize {
+		err = errors.New("cipherText too short")
+
 		return
 	}
 
-	buf := []byte(crypted)
-	iv := buf[:aes.BlockSize]
-	ciphertext := buf[aes.BlockSize:]
-	bm := cipher.NewCBCDecrypter(block, iv)
-	bm.CryptBlocks(ciphertext, ciphertext)
-	ciphertext, _ = Pkcs7Unpad(ciphertext, aes.BlockSize)
+	iv := cipherText[:aes.BlockSize]
+	cipherText = cipherText[aes.BlockSize:]
+	if len(cipherText)%aes.BlockSize != 0 {
+		err = errors.New("cipherText is not a multiple of the block size")
 
-	data = string(ciphertext)
+		return
+	}
+	mode := cipher.NewCBCDecrypter(block, iv)
+	mode.CryptBlocks(cipherText, cipherText)
+	cipherText, _ = pkcs7.Unpad(cipherText, aes.BlockSize)
+	data = fmt.Sprintf("%s", cipherText)
+
 	return
 }
 
