@@ -192,6 +192,62 @@ func PKCS5UnPadding(origData []byte) []byte {
 	return origData[:(length - unpadding)]
 }
 
+var (
+	// ErrInvalidBlockSize indicates hash blocksize <= 0.
+	ErrInvalidBlockSize = errors.New("invalid blocksize")
+
+	// ErrInvalidPKCS7Data indicates bad input to PKCS7 pad or unpad.
+	ErrInvalidPKCS7Data = errors.New("invalid PKCS7 data (empty or not padded)")
+
+	// ErrInvalidPKCS7Padding indicates PKCS7 unpad fails to bad input.
+	ErrInvalidPKCS7Padding = errors.New("invalid padding on input")
+)
+
+// pkcs7Pad right-pads the given byte slice with 1 to n bytes, where
+// n is the block size. The size of the result is x times n, where x
+// is at least 1.
+//
+func Pkcs7Pad(b []byte, blocksize int) ([]byte, error) {
+	if blocksize <= 0 {
+		return nil, ErrInvalidBlockSize
+	}
+	if b == nil || len(b) == 0 {
+		return nil, ErrInvalidPKCS7Data
+	}
+	n := blocksize - (len(b) % blocksize)
+	pb := make([]byte, len(b)+n)
+	copy(pb, b)
+	copy(pb[len(b):], bytes.Repeat([]byte{byte(n)}, n))
+	return pb, nil
+}
+
+// pkcs7Unpad validates and unpads data from the given bytes slice.
+// The returned value will be 1 to n bytes smaller depending on the
+// amount of padding, where n is the block size.
+//
+func Pkcs7Unpad(b []byte, blocksize int) ([]byte, error) {
+	if blocksize <= 0 {
+		return nil, ErrInvalidBlockSize
+	}
+	if b == nil || len(b) == 0 {
+		return nil, ErrInvalidPKCS7Data
+	}
+	if len(b)%blocksize != 0 {
+		return nil, ErrInvalidPKCS7Padding
+	}
+	c := b[len(b)-1]
+	n := int(c)
+	if n == 0 || n > len(b) {
+		return nil, ErrInvalidPKCS7Padding
+	}
+	for i := 0; i < n; i++ {
+		if b[len(b)-n+i] != c {
+			return nil, ErrInvalidPKCS7Padding
+		}
+	}
+	return b[:len(b)-n], nil
+}
+
 // AES加密数据
 //
 // @param origInData	需要加密的数据
@@ -200,20 +256,30 @@ func PKCS5UnPadding(origData []byte) []byte {
 // @return err
 //
 func AesEncrypt(origInData, keyIn string) (encrypt string, err error) {
-	origData := []byte(origInData)
 	key := []byte(keyIn)
+
+	// Create the AES cipher
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return
 	}
+	paddata, err := Pkcs7Pad([]byte(origInData), block.BlockSize())
+	if nil != err {
+		return
+	}
 
-	blockSize := block.BlockSize()
-	origData = PKCS5Padding(origData, blockSize)
-	blockMode := cipher.NewCBCEncrypter(block, key[:blockSize])
-	crypted := make([]byte, len(origData))
-	blockMode.CryptBlocks(crypted, origData)
+	// The IV needs to be unique, but not secure. Therefore it's common to
+	// include it at the beginning of the ciphertext.
+	ciphertext := make([]byte, aes.BlockSize+len(paddata))
+	iv := ciphertext[:aes.BlockSize]
+	_, err = io.ReadFull(rand.Reader, iv)
+	if nil != err {
+		return
+	}
+	bm := cipher.NewCBCEncrypter(block, iv)
+	bm.CryptBlocks(ciphertext[aes.BlockSize:], []byte(paddata))
 
-	encrypt = string(crypted)
+	encrypt = string(ciphertext)
 	return
 }
 
@@ -226,29 +292,20 @@ func AesEncrypt(origInData, keyIn string) (encrypt string, err error) {
 //
 func AesDecrypt(crypted, keyIn string) (data string, err error) {
 	key := []byte(keyIn)
+	// Create the AES cipher
 	block, err := aes.NewCipher(key)
-	if err != nil {
-		return
-	}
-	blockSize := block.BlockSize()
-	blockMode := cipher.NewCBCDecrypter(block, key[:blockSize])
-	origData := make([]byte, len(crypted))
-	lencrypted := len(crypted)
-	if lencrypted == 0 || lencrypted%blockSize != 0 {
-		err = errors.New("PKCS5UnPadding length:" + strconv.FormatUint(uint64(lencrypted), 10))
-
+	if nil != err {
 		return
 	}
 
-	blockMode.CryptBlocks(origData, []byte(crypted))
-	origData = PKCS5UnPadding(origData)
-	if origData == nil {
-		err = errors.New("PKCS5UnPadding error")
+	buf := []byte(crypted)
+	iv := buf[:aes.BlockSize]
+	ciphertext := buf[aes.BlockSize:]
+	bm := cipher.NewCBCDecrypter(block, iv)
+	bm.CryptBlocks(ciphertext, ciphertext)
+	ciphertext, _ = Pkcs7Unpad(ciphertext, aes.BlockSize)
 
-		return
-	}
-
-	data = string(origData)
+	data = string(ciphertext)
 	return
 }
 
