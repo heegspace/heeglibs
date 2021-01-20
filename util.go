@@ -110,88 +110,6 @@ func mapMD5(secret string, param map[string]interface{}) string {
 	return strings.ToUpper(signStr)
 }
 
-var ivspec = []byte("0000000000000000")
-
-func pkCS5Padding(ciphertext []byte, blockSize int) []byte {
-	padding := blockSize - len(ciphertext)%blockSize
-	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
-
-	return append(ciphertext, padtext...)
-}
-
-func pkCS5Trimming(encrypt []byte) []byte {
-	padding := encrypt[len(encrypt)-1]
-
-	return encrypt[:len(encrypt)-int(padding)]
-}
-
-func AesEncode(src, key string) (value string, err error) {
-	block, err := aes.NewCipher([]byte(key))
-	if err != nil {
-		fmt.Println("key error1", err)
-		return
-	}
-	if src == "" {
-		fmt.Println("plain content empty")
-		err = errors.New("plain content empty")
-		return
-	}
-	ecb := cipher.NewCBCEncrypter(block, ivspec)
-	content := []byte(src)
-	content = pkCS5Padding(content, block.BlockSize())
-	crypted := make([]byte, len(content))
-	ecb.CryptBlocks(crypted, content)
-
-	value = hex.EncodeToString(crypted)
-
-	return
-}
-
-func AesDecode(token, key string) (data string, err error) {
-	crypted, err := hex.DecodeString(strings.ToLower(token))
-	if err != nil || len(crypted) == 0 {
-		fmt.Println("plain content empty")
-		err = errors.New("plain content empty")
-
-		return
-	}
-
-	block, err := aes.NewCipher([]byte(key))
-	if err != nil {
-		fmt.Println("key error1", err)
-		err = errors.New("key error1")
-
-		return
-	}
-
-	ecb := cipher.NewCBCDecrypter(block, ivspec)
-	decrypted := make([]byte, len(crypted))
-	ecb.CryptBlocks(decrypted, crypted)
-
-	data = string(pkCS5Trimming(decrypted))
-
-	return
-}
-
-func PKCS5Padding(ciphertext []byte, blockSize int) []byte {
-	padding := blockSize - len(ciphertext)%blockSize
-	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
-	return append(ciphertext, padtext...)
-}
-
-func PKCS5UnPadding(origData []byte) []byte {
-	length := len(origData)
-	if length == 0 {
-		return nil
-	}
-	unpaddByte := origData[length-1]
-	unpadding := int(unpaddByte)
-	if length <= unpadding {
-		return nil
-	}
-	return origData[:(length - unpadding)]
-}
-
 var (
 	// ErrInvalidBlockSize indicates hash blocksize <= 0.
 	ErrInvalidBlockSize = errors.New("invalid blocksize")
@@ -255,7 +173,7 @@ func Pkcs7Unpad(b []byte, blocksize int) ([]byte, error) {
 // @return encrypt 		加密以后的数据
 // @return err
 //
-func AesEncrypt(origInData, keyIn string) (encrypt string, err error) {
+func AesEncode(origInData, keyIn string) (encrypt string, err error) {
 	key := []byte(keyIn)
 
 	// Create the AES cipher
@@ -290,7 +208,7 @@ func AesEncrypt(origInData, keyIn string) (encrypt string, err error) {
 // @return data 		解密以后的数据
 // @return err
 //
-func AesDecrypt(crypted, keyIn string) (data string, err error) {
+func AesDecode(crypted, keyIn string) (data string, err error) {
 	key := []byte(keyIn)
 	// Create the AES cipher
 	block, err := aes.NewCipher(key)

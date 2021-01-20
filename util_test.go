@@ -33,6 +33,46 @@ func TestGetRandomNumberString(t *testing.T) {
 	fmt.Println(GetRandomNumberString(6))
 }
 
+func Test_Ae16Keys(t *testing.T) {
+	encrypt, err := AesEncode("Myname", "1234567890987654")
+	if nil != err {
+		fmt.Println(err)
+
+		return
+	}
+
+	fmt.Println(encrypt)
+	data, err := AesDecode(encrypt, "1234567890987654")
+	if nil != err {
+		fmt.Println(err)
+
+		return
+	}
+
+	fmt.Println(data)
+	return
+}
+
+func Test_Ae32Keys(t *testing.T) {
+	encrypt, err := AesEncode("Myname", "12345678909876541234567890987654")
+	if nil != err {
+		fmt.Println(err)
+
+		return
+	}
+
+	fmt.Println(encrypt)
+	data, err := AesDecode(encrypt, "12345678909876541234567890987654")
+	if nil != err {
+		fmt.Println(err)
+
+		return
+	}
+
+	fmt.Println(data)
+	return
+}
+
 func TestSendSmsCode(t *testing.T) {
 	code, err := SendSmsCode(
 		"http://gw.api.taobao.com/router/rest",
