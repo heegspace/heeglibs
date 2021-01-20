@@ -1,6 +1,7 @@
 package heeglibs
 
 import (
+	"encoding/base64"
 	"fmt"
 	"testing"
 )
@@ -62,7 +63,8 @@ func Test_Ae32Keys(t *testing.T) {
 	}
 
 	fmt.Println(encrypt)
-	data, err := AesDecode(encrypt, "12345678909876541234567890987654")
+	bdata, _ := base64.StdEncoding.DecodeString("BOuIBqJN988vqG6e1vOTIhOSqJzsiV30njGaajKiCQ6mnurI/OvWIgEzWZD6JXLsVFczoAPOg8FZ7ri+ZXoC4xEVifJxqA8SdN/2yNGt+0Q=")
+	data, err := AesDecode(string(bdata), "92ea95fcfcf7bc7832b066ddf6833b4c")
 	if nil != err {
 		fmt.Println(err)
 
