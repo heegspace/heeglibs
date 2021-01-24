@@ -202,11 +202,11 @@ func RsaEncrypt(origData []byte, publicKey []byte) ([]byte, error) {
 }
 
 // 使用对应的私钥解密
-// 
+//
 // @param ciphertext 	加密的数据
 // @param privateKey 	私钥
 // @return {data},{err}
-/
+//
 func RsaDecrypt(ciphertext []byte, privateKey []byte) ([]byte, error) {
 	block, _ := pem.Decode(privateKey)
 	if block == nil {
