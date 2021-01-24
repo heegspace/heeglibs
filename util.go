@@ -5,8 +5,11 @@ import (
 	"crypto/cipher"
 	"crypto/md5"
 	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/hex"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"io"
@@ -177,6 +180,43 @@ func AesDecode(crypted, keyIn string) (data string, err error) {
 	data = fmt.Sprintf("%s", cipherText)
 
 	return
+}
+
+// 使用公钥RSA签名
+//
+// @param origData	要签名的数据
+// @param publicKey 公钥
+// @return {sign},{err}
+//
+func RsaEncrypt(origData []byte, publicKey []byte) ([]byte, error) {
+	block, _ := pem.Decode(publicKey)
+	if block == nil {
+		return nil, errors.New("public key error")
+	}
+	pubInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	pub := pubInterface.(*rsa.PublicKey)
+	return rsa.EncryptPKCS1v15(rand.Reader, pub, origData)
+}
+
+// 使用对应的私钥解密
+// 
+// @param ciphertext 	加密的数据
+// @param privateKey 	私钥
+// @return {data},{err}
+/
+func RsaDecrypt(ciphertext []byte, privateKey []byte) ([]byte, error) {
+	block, _ := pem.Decode(privateKey)
+	if block == nil {
+		return nil, errors.New("private key error!")
+	}
+	priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	return rsa.DecryptPKCS1v15(rand.Reader, priv, ciphertext)
 }
 
 // ip地址转到整数
