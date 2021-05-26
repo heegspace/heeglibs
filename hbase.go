@@ -2,6 +2,7 @@ package heeglibs
 
 import (
 	"context"
+	"time"
 
 	"github.com/tsuna/gohbase"
 	"github.com/tsuna/gohbase/hrpc"
@@ -31,7 +32,8 @@ func NewHBase() *HBase {
 // @param host 	集群的主机地址列表[192.168.0.119:2181,192.169.0.120:2181]
 //
 func (this *HBase) OpenClient(host string) {
-	this.Client = gohbase.NewClient(host)
+	this.Client = gohbase.NewClient(host, gohbase.RegionLookupTimeout(2*time.Second),
+		gohbase.RegionReadTimeout(2*time.Second), gohbase.ZookeeperTimeout(2*time.Second))
 
 	return
 }
@@ -180,7 +182,8 @@ func (this *HBase) DelCell(table_name string, value HBaseResult) (err error) {
 // @param host 	集群的主机列表[192.168.0.119:2181,192.169.0.120:2181]
 //
 func (this *HBase) OpenAdminClient(host string) {
-	this.AdminClient = gohbase.NewAdminClient(host)
+	this.AdminClient = gohbase.NewAdminClient(host, gohbase.RegionLookupTimeout(2*time.Second),
+		gohbase.RegionReadTimeout(2*time.Second), gohbase.ZookeeperTimeout(2*time.Second))
 
 	return
 }
