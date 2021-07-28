@@ -198,7 +198,7 @@ func (this *HttpClient) Post() (r []byte, err error) {
 
 	this.Request.Method = "POST"
 	client := &http.Client{
-		Timeout: 1 * time.Second,
+		Timeout: 3 * time.Second,
 	}
 
 	res, err := client.Do(this.Request)
