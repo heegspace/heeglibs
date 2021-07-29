@@ -116,7 +116,7 @@ func (this *HttpClient) Get() (r []byte, err error) {
 
 	this.Request.Method = "GET"
 	client := &http.Client{
-		Timeout: 1 * time.Second,
+		Timeout: 3 * time.Second,
 	}
 
 	res, err := client.Do(this.Request)
@@ -144,7 +144,7 @@ func (this *HttpClient) Put() (r []byte, err error) {
 
 	this.Request.Method = "PUT"
 	client := &http.Client{
-		Timeout: 1 * time.Second,
+		Timeout: 3 * time.Second,
 	}
 
 	res, err := client.Do(this.Request)
@@ -171,7 +171,7 @@ func (this *HttpClient) Delete() (r []byte, err error) {
 
 	this.Request.Method = "DELETE"
 	client := &http.Client{
-		Timeout: 1 * time.Second,
+		Timeout: 3 * time.Second,
 	}
 
 	res, err := client.Do(this.Request)
