@@ -51,8 +51,8 @@ func (this *HBase) OpenClient(host string) {
 func (this *HBase) GetRow(table_name string, rowkey string) (r []HBaseResult, err error) {
 	tBegin := time.Now()
 	defer func() {
-		tEnd := int(time.Since(tBegin).Nanoseconds() / 1000)
-		logger.Info("GetRow", zap.Any("table_name", table_name), zap.Any("rowkey", rowkey), zap.Error(err), zap.Any("time:", fmt.Sprintf("%dms", tEnd)))
+		tEnd := int(time.Since(tBegin).Nanoseconds() / 1000000)
+		logger.Info("GetRow", zap.Any("table_name", table_name), zap.Any("rowkey", rowkey), zap.Error(err), zap.Any("time:", fmt.Sprintf("%dus", tEnd)))
 
 		return
 	}()
@@ -92,7 +92,7 @@ func (this *HBase) GetRow(table_name string, rowkey string) (r []HBaseResult, er
 func (this *HBase) PutCell(table_name string, value HBaseResult) (err error) {
 	tBegin := time.Now()
 	defer func() {
-		tEnd := int(time.Since(tBegin).Nanoseconds() / 1000)
+		tEnd := int(time.Since(tBegin).Nanoseconds() / 1000000)
 		logger.Info("PutCell", zap.Any("table_name", table_name), zap.Any("family", value.Family), zap.Any("rowkey", value.RowKey), zap.Error(err), zap.Any("time:", fmt.Sprintf("%dms", tEnd)))
 
 		return
@@ -129,7 +129,7 @@ func (this *HBase) PutCell(table_name string, value HBaseResult) (err error) {
 func (this *HBase) GetCell(table_name, rowkey, family string, columns []string) (r map[string]HBaseResult, err error) {
 	tBegin := time.Now()
 	defer func() {
-		tEnd := int(time.Since(tBegin).Nanoseconds() / 1000)
+		tEnd := int(time.Since(tBegin).Nanoseconds() / 1000000)
 		logger.Info("GetCell", zap.Any("table_name", table_name), zap.Any("family", family), zap.Any("rowkey", rowkey), zap.Error(err), zap.Any("time:", fmt.Sprintf("%dms", tEnd)))
 
 		return
@@ -175,7 +175,7 @@ func (this *HBase) GetCell(table_name, rowkey, family string, columns []string) 
 func (this *HBase) DelCell(table_name string, value HBaseResult) (err error) {
 	tBegin := time.Now()
 	defer func() {
-		tEnd := int(time.Since(tBegin).Nanoseconds() / 1000)
+		tEnd := int(time.Since(tBegin).Nanoseconds() / 1000000)
 		logger.Info("DelCell", zap.Any("table_name", table_name), zap.Any("family", value.Family), zap.Any("rowkey", value.RowKey), zap.Error(err), zap.Any("time:", fmt.Sprintf("%dms", tEnd)))
 
 		return
