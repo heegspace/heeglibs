@@ -2,10 +2,13 @@ package heeglibs
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	"github.com/micro/go-micro/v3/logger"
 	"github.com/tsuna/gohbase"
 	"github.com/tsuna/gohbase/hrpc"
+	"go.uber.org/zap"
 )
 
 type HBase struct {
@@ -46,6 +49,14 @@ func (this *HBase) OpenClient(host string) {
 // @return []HBaseResult,err
 //
 func (this *HBase) GetRow(table_name string, rowkey string) (r []HBaseResult, err error) {
+	tBegin := time.Now()
+	defer func() {
+		tEnd := int(time.Since(tBegin).Nanoseconds() / 1000)
+		logger.Info("GetRow", zap.Any("table_name", table_name), zap.Any("rowkey", rowkey), zap.Error(err), zap.Any("time:", fmt.Sprintf("%dms", tEnd)))
+
+		return
+	}()
+
 	getRequest, err := hrpc.NewGetStr(context.Background(), table_name, rowkey)
 	if nil != err {
 		return
@@ -79,6 +90,14 @@ func (this *HBase) GetRow(table_name string, rowkey string) (r []HBaseResult, er
 // @return err
 //
 func (this *HBase) PutCell(table_name string, value HBaseResult) (err error) {
+	tBegin := time.Now()
+	defer func() {
+		tEnd := int(time.Since(tBegin).Nanoseconds() / 1000)
+		logger.Info("PutCell", zap.Any("table_name", table_name), zap.Any("family", value.Family), zap.Any("rowkey", value.RowKey), zap.Error(err), zap.Any("time:", fmt.Sprintf("%dms", tEnd)))
+
+		return
+	}()
+
 	values := map[string]map[string][]byte{
 		value.Family: map[string][]byte{
 			value.Qualifier: value.Value,
@@ -108,6 +127,14 @@ func (this *HBase) PutCell(table_name string, value HBaseResult) (err error) {
 // @return map[string]HBaseResult,err
 //
 func (this *HBase) GetCell(table_name, rowkey, family string, columns []string) (r map[string]HBaseResult, err error) {
+	tBegin := time.Now()
+	defer func() {
+		tEnd := int(time.Since(tBegin).Nanoseconds() / 1000)
+		logger.Info("GetCell", zap.Any("table_name", table_name), zap.Any("family", family), zap.Any("rowkey", rowkey), zap.Error(err), zap.Any("time:", fmt.Sprintf("%dms", tEnd)))
+
+		return
+	}()
+
 	faly := map[string][]string{family: columns}
 	getRequest, err := hrpc.NewGetStr(context.Background(), table_name, rowkey,
 		hrpc.Families(faly))
@@ -146,6 +173,14 @@ func (this *HBase) GetCell(table_name, rowkey, family string, columns []string) 
 // @return err
 //
 func (this *HBase) DelCell(table_name string, value HBaseResult) (err error) {
+	tBegin := time.Now()
+	defer func() {
+		tEnd := int(time.Since(tBegin).Nanoseconds() / 1000)
+		logger.Info("DelCell", zap.Any("table_name", table_name), zap.Any("family", value.Family), zap.Any("rowkey", value.RowKey), zap.Error(err), zap.Any("time:", fmt.Sprintf("%dms", tEnd)))
+
+		return
+	}()
+
 	if "" == value.Qualifier {
 		// 删除族
 		family := map[string]map[string][]byte{
