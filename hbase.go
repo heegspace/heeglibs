@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/asim/go-micro/v3/logger"
+	"go-micro.dev/v4/logger"
 	"github.com/tsuna/gohbase"
 	"github.com/tsuna/gohbase/hrpc"
 	"go.uber.org/zap"
