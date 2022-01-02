@@ -13,7 +13,8 @@ import (
 )
 
 type HttpClient struct {
-	Request *http.Request
+	Request  *http.Request
+	Response *http.Response
 }
 
 func NewHttpClient() *HttpClient {
@@ -123,11 +124,14 @@ func (this *HttpClient) Get() (r []byte, err error) {
 	if nil != err {
 		return
 	}
-
 	defer res.Body.Close()
 
 	r, err = ioutil.ReadAll(res.Body)
+	if nil != err {
+		return
+	}
 
+	this.Response = res
 	return
 }
 
