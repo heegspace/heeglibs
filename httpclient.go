@@ -15,10 +15,14 @@ import (
 type HttpClient struct {
 	Request  *http.Request
 	Response *http.Response
+
+	Timeout int
 }
 
 func NewHttpClient() *HttpClient {
-	obj := &HttpClient{}
+	obj := &HttpClient{
+		Timeout: 3,
+	}
 
 	return obj
 }
@@ -117,7 +121,7 @@ func (this *HttpClient) Get() (r []byte, err error) {
 
 	this.Request.Method = "GET"
 	client := &http.Client{
-		Timeout: 3 * time.Second,
+		Timeout: time.Duration(this.Timeout) * time.Second,
 	}
 
 	res, err := client.Do(this.Request)
@@ -125,6 +129,11 @@ func (this *HttpClient) Get() (r []byte, err error) {
 		return
 	}
 	defer res.Body.Close()
+	if 200 > res.StatusCode || 299 < res.StatusCode {
+		err = fmt.Errorf("http request fail, statusCode: %d", res.StatusCode)
+
+		return
+	}
 
 	r, err = ioutil.ReadAll(res.Body)
 	if nil != err {
