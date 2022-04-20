@@ -143,7 +143,7 @@ func AesEncode(origInData, keyIn string) (encrypt string, err error) {
 	}
 	mode := cipher.NewCBCEncrypter(block, iv)
 	mode.CryptBlocks(cipherText[aes.BlockSize:], plainText)
-	encrypt = fmt.Sprintf("%x", cipherText)
+	encrypt = hex.EncodeToString(cipherText)
 	return
 }
 
