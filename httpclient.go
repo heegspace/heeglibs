@@ -63,7 +63,6 @@ func (this *HttpClient) NewRequest(url string, data interface{}) (err error) {
 	}
 
 	t := fmt.Sprintf("%T", data)
-	fmt.Println("NewRequest ", t, data.(string))
 	switch t {
 	case "string":
 		body := bytes.NewReader([]byte(data.(string)))
