@@ -398,16 +398,9 @@ func (this *ElasticSearch) CountByBody(index string, body string) (r []byte, err
 
 // 语句分词
 // @param body 		句子
-// {"tokens":[{"token":"祖国","start_offset":2,"end_offset":4,"type":"CN_WORD","position":0}]}
-func (this *ElasticSearch) Ananlyzer(words string) (r []byte, err error) {
+func (this *ElasticSearch) Ananlyzer(body string) (r []byte, err error) {
 	url := this.Url + "/_analyze"
-	body := `
-	{
-		"analyzer":"ik_max_word",
-		"text":"%s"
-	}
-	`
-	body = fmt.Sprintf(body, words)
+
 	request := NewHttpClient()
 	err = request.NewRequest(url, body)
 	if nil != err {
