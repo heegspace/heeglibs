@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
@@ -44,6 +45,34 @@ func ObjConvert(src, dst interface{}) (err error) {
 	}
 	err = json.Unmarshal(b, &dst)
 	return
+}
+
+// base64解码
+//
+// param 	buf
+// return {string}
+//
+func DeBase64(buf string) string {
+	basestring, _ := base64.StdEncoding.DecodeString(buf)
+
+	return string(basestring)
+}
+
+// base64编码
+//
+// param 	buf 	数据缓存
+// param 	n		数据长度
+// return string
+//
+func EnBase64(buf []byte, n int) string {
+	size := n
+	if n > len(buf) {
+		size = len(buf)
+	}
+
+	sourcestring := base64.StdEncoding.EncodeToString(buf[:size])
+
+	return sourcestring
 }
 
 // 产生一个32位的UID字符串
