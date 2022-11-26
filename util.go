@@ -105,6 +105,11 @@ func Timestamp() int64 {
 	return time.Now().Unix()
 }
 
+// 获取纳秒时间戳
+func Timestampns() int64 {
+	return time.Now().UnixNano()
+}
+
 // 格式化当前的时间将其中T和Z替换
 func FormatDateString(str string) string {
 	s := strings.Replace(str, "T", " ", -1)
